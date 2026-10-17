@@ -935,25 +935,54 @@ toy <- data.frame(
   E = c(10, 11, 12, 0, 14, 15)     # like B, but the 4th value (0) is a major outlier
 )
 
+# One colour per gene; A, the query, is black
+gene_col <- c(A = "black", B = "#E69F00", C = "#009E73", D = "#0072B2", E = "#CC79A7")
+
+# The five expression profiles across the six samples
+par(mfrow = c(1, 1), mar = c(4, 4, 3, 1))
+matplot(1:6, toy, type = "b", pch = 19, lty = 1, lwd = 2, col = gene_col,
+        ylim = c(0, 18), xlab = "Sample", ylab = "Expression",
+        main = "Expression profiles of genes A-E")
+legend("topleft", legend = names(gene_col), col = gene_col, lty = 1, lwd = 2, pch = 19,
+       ncol = 5, bty = "n")
+
 for (g in c("B", "C", "D", "E")) {
   test <- cor.test(toy$A, toy[[g]])   # PCC of A vs. the other gene, and its p-value
   cat(sprintf("A <-> %s:  r = %6.3f   (p = %.2e)\n", g, test$estimate, test$p.value))
 }
 ```
 
-A and B are perfectly correlated: *r* = 1, and the p-value (the probability of seeing
-such a correlation by chance) is 0. Plot A against each gene, with a regression line,
-to see how the points produce the PCC:
+`matplot()` draws every column of a table as one line. A and B are perfectly
+correlated: *r* = 1, and the p-value (the probability of seeing such a correlation by
+chance) is 0 — even though B is expressed at a higher level than A. PCC compares the
+*shape* of two profiles, not their height.
+
+Now look at A next to each gene in two ways: their **profiles** over the samples (top
+row), and A plotted **against** the gene, with a regression line (bottom row). The
+scatter plot is what the PCC actually measures — how close the points are to a straight
+line:
 
 ```r
-par(mfrow = c(1, 4), mar = c(4, 4, 3, 1))   # four plots side by side
+par(mfrow = c(2, 4), mar = c(4, 4, 3, 1))   # 2 rows x 4 columns of plots
+
+# Top row: the profile of A (black) next to the profile of each other gene
 for (g in c("B", "C", "D", "E")) {
-  plot(toy$A, toy[[g]], pch = 19, cex = 1.5, xlab = "Gene A", ylab = paste("Gene", g),
-       main = sprintf("A <-> %s\nPCC = %.2f", g, cor(toy$A, toy[[g]])))
+  matplot(1:6, toy[, c("A", g)], type = "b", pch = 19, lty = 1, lwd = 2,
+          col = gene_col[c("A", g)], ylim = range(toy),
+          xlab = "Sample", ylab = "Expression", main = paste("Profiles of A and", g))
+}
+
+# Bottom row: A plotted against each gene, with the regression line
+for (g in c("B", "C", "D", "E")) {
+  plot(toy$A, toy[[g]], pch = 19, cex = 1.5, col = gene_col[g],
+       xlab = "Gene A", ylab = paste("Gene", g),
+       main = sprintf("A <-> %s:  PCC = %.2f", g, cor(toy$A, toy[[g]])))
   abline(lm(toy[[g]] ~ toy$A), col = "red")   # the regression line
 }
 par(mfrow = c(1, 1))
 ```
+
+Click **Zoom** in the Plots pane to see the eight panels at a readable size.
 
 *Your turn:* what can you say about genes C, D and E and their relationship to A? Are
 outliers a serious problem? How could you deal with them?
@@ -962,8 +991,8 @@ outliers a serious problem? How could you deal with them?
 - **B**: *r* = 1.00 — every point is on the line.
 - **C**: *r* = 0.82 (p = 0.048) — strongly correlated, except for one slightly-off value.
 - **D**: *r* = 0.09 — no relationship with A at all.
-- **E**: *r* = 0.22 — E follows A perfectly in five of six samples, yet a **single
-  outlier** drags the PCC from 1 down to 0.22.
+- **E**: *r* = 0.22 — in the profile plot E rises exactly like A in five of six samples,
+  yet the **single outlier** in sample 4 drags the PCC from 1 down to 0.22.
 
 So yes, outliers are a serious problem for PCC: one bad sample can hide a real
 relationship (E) or create a fake one. Remedies: remove the offending sample (after
