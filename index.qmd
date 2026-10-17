@@ -525,6 +525,11 @@ Yes. CESA4 is at about **2 TPM** in the leaf but about **146 TPM** in the intern
 roughly 70 times higher. Stems are full of vascular tissue with secondary cell walls,
 leaves much less so, so a secondary-wall cellulose synthase should be highest in the
 internode.
+
+And 2 million reads were plenty: with all ~25 million reads the values are 2.4 and
+147 TPM — the same answer. TPM is a *proportion*, so it does not grow with the number
+of reads; more reads mainly make lowly expressed genes (here CESA4 in the leaf, only 14
+reads) more precise.
 :::
 
 ::: {.run-local}
