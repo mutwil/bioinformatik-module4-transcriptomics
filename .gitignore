@@ -1,0 +1,8 @@
+_site/
+.quarto/
+_extensions/
+.DS_Store
+.wrangler/
+
+/.quarto/
+**/*.quarto_ipynb
