@@ -1121,7 +1121,7 @@ bacteria and archaea — once you know a few, the rest are easy.
 | 0 | [UniProt](https://www.uniprot.org/) | protein function, domains, location, literature |
 | 1 | [EBI Expression Atlas](https://www.ebi.ac.uk/gxa/home) | bulk RNA-seq: baseline and differential expression |
 | 2 | [ePlant](https://bar.utoronto.ca/eplant/) | bulk, tissue and single-cell expression in pictures |
-| 3 | [Plant single-cell atlas](http://neomorph.salk.edu:9000/) | single-cell RNA-seq of Arabidopsis |
+| 3 | [Plant Single Cell Browser](https://www.zmbp-resources.uni-tuebingen.de/timmermans/plant-single-cell-browser/) | single-cell RNA-seq: which *cells* in a leaf express a gene |
 
 You will combine a protein-function database with expression databases to study a
 developmental regulator, **APETALA3 (AP3)**. AP3 and a handful of other transcription
@@ -1208,38 +1208,71 @@ instead and come back to ePlant later.
   **conserved** across species.
 :::
 
-## 4.4 The plant single-cell atlas
+## 4.4 A single-cell atlas of the leaf
 
-The Plant Single Cell Atlas (Salk Institute) holds single-cell RNA-seq data from
-Arabidopsis. Genes can be explored across individual cells and cell clusters, showing
-exactly where in a tissue — or when in development — a gene is active. That resolution
-matters for genes that act in narrow developmental windows.
+Bulk RNA-seq (§4.2) tells you *which organ* a gene is expressed in — but a leaf is
+made of many cell types. **Single-cell RNA-seq** measures expression in thousands of
+individual cells; cells with similar profiles are grouped into **clusters**, and each
+cluster is labelled with the cell type it represents. That shows exactly *which cells*
+in a tissue use a gene.
 
-We switch to **PsaK** (AT1G30380), the photosynthesis gene from §3.3, which is expected
-in **mesophyll** cells (the photosynthetic cells of the leaf).
+We use the **Plant Single Cell Browser** (University of Tübingen) and its Arabidopsis
+**leaf atlas** (Kim et al. 2021, *The Plant Cell*), and three genes with very different
+jobs:
+
+| Gene | AGI | Function | Expected where? |
+|:--|:--|:--|:--|
+| **PsaK** | AT1G30380 | photosystem I subunit (§3.3) | photosynthetic cells |
+| **SUC2** | AT1G22710 | sucrose transporter that loads sugar into the phloem | ? |
+| **CESA7** | AT5G17420 | secondary-wall cellulose synthase (Session 5) | ? |
 
 ::: {.web}
-Go to [neomorph.salk.edu:9000](http://neomorph.salk.edu:9000/) — note the makeshift
-address: the database is young, like the whole field of single-cell sequencing.
-
-1. Select the **merged seedling** cell atlas and wait for the page to load.
-2. On the right, enter **AT1G30380** in the gene search and click the **water-drop icon**
-   to colour the cells by the gene's expression.
-3. On the left, identify which clusters show expression.
-   - Q6 In which cell types is PsaK most highly expressed?
-   - Q7 In which clusters is PsaK most highly expressed?
-4. Discuss: are the results very clear? What should the ideal expression of PsaK look
-   like?
+1. Go to the [Plant Single Cell Browser](https://www.zmbp-resources.uni-tuebingen.de/timmermans/plant-single-cell-browser/)
+   and click **Arabidopsis Leaf scRNA-seq — Kim et al. (2021)**.
+2. Study the **Leaf Atlas Annotation** picture on the left: every dot is one cell, and
+   the numbered legend says which cell type each cluster (1–19) is.
+3. In **Enter genes**, replace the example genes with
+   `AT1G30380, AT1G22710, AT5G17420` and click **Submit**.
+4. **Feature Plot** tab: one map per gene, with the cells coloured by expression
+   (grey = none, red = high). Compare each map with the annotation picture.
+   - Q6 In which cell types is **PsaK** expressed? Where is it highest?
+   - Q7 In which cell type is **SUC2** expressed? Does that fit its function?
+   - Q8 A message says `AT5G17420 - not found`. Why might **CESA7** be missing from a
+     leaf single-cell atlas?
+5. **Average Expression** tab: the average expression of each gene in each cluster.
+   ⚠ The table counts clusters **from 0** (`c0`–`c18`), the legend **from 1** (1–19):
+   `c8` in the table is cluster **9** in the legend.
+   - Q9 Which cluster has the highest PsaK? Which cell type is it? Which cell types have
+     the lowest PsaK?
+6. Discuss: what does this atlas tell you that the bulk Expression Atlas (§4.2) could not?
 :::
 
 ::: {.callout-tip collapse="true" title="Answer"}
-- Q6 **Mesophyll** cells, as expected.
-- Q7 **Cluster 12**.
-- Not very clear. Ideally PsaK would light up the mesophyll (and other photosynthetic
-  cells) and nothing else. Here it is highest in mesophyll, but cluster 12 also contains
-  many cells of **unknown type**, and expression is spread more widely than it should
-  be. Single-cell data are noisy, and cluster annotation is still incomplete — another
-  reason to check results across several databases.
+- **Q6** PsaK lights up the whole **mesophyll** — the large group of clusters on the
+  right — the photosynthetic cells of the leaf. It is much weaker in the vasculature,
+  epidermis and guard cells.
+- **Q7** SUC2 is expressed **only in companion cells** (cluster 15, `c14` in the table).
+  That fits perfectly: companion cells sit next to the sieve elements and load the
+  sucrose made in the mesophyll into the phloem, which carries it to the rest of the
+  plant.
+- **Q8** CESA7 makes cellulose for **secondary cell walls**, and those are built in
+  *developing* xylem — cells that are rare in a mature leaf. Mature xylem vessels are
+  dead, hollow tubes without RNA, and the thick, lignified walls resist being digested
+  into single cells (protoplasts) for sequencing. The gene was too rarely detected to be
+  kept in this dataset. The lesson: **absent from a single-cell atlas is not the same as
+  not expressed** — always ask which tissue, stage and method the atlas used. (In the
+  bulk atlas of Session 3, CESA7 is high in the stem.)
+- **Q9** The highest PsaK is in **`c8` = cluster 9, mesophyll** (average ≈ 217); all
+  mesophyll clusters have high values (≈ 25–217). The lowest are a phloem parenchyma/xylem
+  cluster (`c17` = cluster 18, ≈ 4), guard cells (`c15` ≈ 8), epidermis
+  (`c12` ≈ 8) and phloem parenchyma/procambium (`c9` ≈ 9). Even these are not zero:
+  partly because some of these cells do have chloroplasts, partly because PsaK mRNA is so
+  abundant that it leaks from broken mesophyll cells into every sample (*ambient RNA*).
+- **Discussion** Bulk RNA-seq says "PsaK is a leaf gene". The single-cell atlas says
+  *which* leaf cells: mesophyll, not companion cells or epidermis — and that the
+  mesophyll is not uniform, since PsaK differs about tenfold between mesophyll clusters.
+  It also places SUC2 in one small cell type whose signal is diluted by all the other
+  cells in a bulk leaf sample.
 :::
 
 ---
