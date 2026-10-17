@@ -362,7 +362,18 @@ from a mature **leaf** and a stem **internode**, plus a third sample that will
 demonstrate something.
 
 Every SRA run is mirrored by the **European Nucleotide Archive (ENA)**, which serves it
-directly as a compressed FASTQ file — so a plain `curl` download is all we need:
+directly as a compressed FASTQ file. The full leaf and internode runs have about 25
+million reads each (1.1 GB per file) — far more than we need to see the pattern. So we
+**stream** each file and keep only the **first 2 million reads**. A FASTQ file has four
+lines per read, so that is the first 8 million lines:
+
+- `curl -sL URL` streams the file from ENA;
+- `zcat` unpacks it on the fly;
+- `head -n 8000000` keeps the first 8 million lines — and then stops, which also stops
+  the download;
+- `gzip > file` compresses the result again and saves it.
+
+The `|` (*pipe*) sends the output of one command straight into the next.
 
 ::: {.terminal}
 ```bash
@@ -370,25 +381,25 @@ cd ~/work/module4
 mkdir -p reads
 ena="https://ftp.sra.ebi.ac.uk/vol1/fastq"
 
-# Leaf, mature (L.lg)
-curl -fL --retry 5 --retry-delay 10 --retry-all-errors -o reads/SRR3581681.fastq.gz \
-  $ena/SRR358/001/SRR3581681/SRR3581681.fastq.gz
-# Internode (IN)
-curl -fL --retry 5 --retry-delay 10 --retry-all-errors -o reads/SRR3581705.fastq.gz \
-  $ena/SRR358/005/SRR3581705/SRR3581705.fastq.gz
-# And another sample, to demonstrate something :)
-curl -fL --retry 5 --retry-delay 10 --retry-all-errors -o reads/SRR34314723_1.fastq.gz \
-  $ena/SRR343/023/SRR34314723/SRR34314723_1.fastq.gz
+# Leaf, mature (L.lg): the first 2 million reads
+curl -sL $ena/SRR358/001/SRR3581681/SRR3581681.fastq.gz | zcat | head -n 8000000 | gzip > reads/SRR3581681.fastq.gz
+# Internode (IN): the first 2 million reads
+curl -sL $ena/SRR358/005/SRR3581705/SRR3581705.fastq.gz | zcat | head -n 8000000 | gzip > reads/SRR3581705.fastq.gz
+# And another sample, to demonstrate something :) (the whole file)
+curl -sL $ena/SRR343/023/SRR34314723/SRR34314723_1.fastq.gz -o reads/SRR34314723_1.fastq.gz
 
-ls -lh reads
+# Check: how many reads did you get? (number of lines / 4)
+for f in reads/*.fastq.gz; do echo "$f: $(( $(zcat $f | wc -l) / 4 )) reads"; done
 ```
 :::
 
-The two Arabidopsis files are about **1.1 GB each** (compressed) — expect a few minutes
-per file. If the whole class downloads at once, the server may briefly refuse
-(`error: 403`); `--retry` makes `curl` try again by itself. (NCBI's own tool for the same
-job is `fasterq-dump` from the SRA Toolkit; it writes uncompressed FASTQ, about 6 GB per
-file here.)
+Each Arabidopsis file is about **90 MB** and takes well under a minute. The check
+should report **2000000** reads for the two Arabidopsis files (and 30 for the third —
+more on that later). If a file reports **0** reads, the server was busy when you asked
+— that happens when the whole class downloads at once. Wait a minute and run that one
+`curl` line again, then the check. (NCBI's own tool for downloading runs is
+`fasterq-dump` from the SRA Toolkit; for a whole run it writes uncompressed FASTQ, about
+6 GB per file here.)
 
 Look at the first reads of one file — `zcat` unpacks on the fly:
 
@@ -431,7 +442,7 @@ mkdir -p results
 :::
 
 The backslash `\` continues a command on the next line — paste each command whole.
-This runs for a few minutes per sample. Watch what kallisto prints: the line
+This takes less than a minute per sample. Watch what kallisto prints: the line
 `processed … reads, … reads pseudoaligned` is your first sign of trouble.
 
 ## 1.9 kallisto's output files
@@ -474,7 +485,7 @@ kallisto's console output above? What do you think is wrong with it?
 **SRR34314723.** kallisto's own output already says it:
 `processed 30 reads, 6 reads pseudoaligned` — only **30 reads** in total, and only 20 %
 of them map. A real sample has millions of reads with most of them mapping (the leaf
-sample: 17.4 of 25.7 million).
+sample: 1.36 of the 2 million reads, 68 %).
 
 Look the run up in the SRA and the reason is clear: it is a tiny paired-end test run
 from **rice and sorghum** seedlings — the wrong organism for an Arabidopsis index, and
@@ -510,15 +521,15 @@ data.frame(TPM = cesa4_tpm)
 *Your turn:* does the expression of CESA4 match its function?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-Yes. CESA4 is at about **2 TPM** in the leaf but about **147 TPM** in the internode —
-roughly 60 times higher. Stems are full of vascular tissue with secondary cell walls,
+Yes. CESA4 is at about **2 TPM** in the leaf but about **146 TPM** in the internode —
+roughly 70 times higher. Stems are full of vascular tissue with secondary cell walls,
 leaves much less so, so a secondary-wall cellulose synthase should be highest in the
 internode.
 :::
 
 ::: {.run-local}
-**Free up space when you are done.** The reads take 2.3 GB of your ERDA storage and are
-not needed again. In the Terminal: `rm -r ~/work/module4/reads`
+**Free up space when you are done.** The reads (about 180 MB) are not needed again.
+In the Terminal: `rm -r ~/work/module4/reads`
 :::
 
 ---
@@ -1789,7 +1800,7 @@ You do not upload any data: every dataset is downloaded straight into
 ~/work/module4/
     bin/kallisto                            the installed program (Session 1)
     TAIR10_cds.fa  TAIR10_index.idx         reference sequences + kallisto index (Session 1)
-    reads/                                  raw reads, 2.3 GB — delete after Session 1
+    reads/                                  raw reads, 180 MB — delete after Session 1
     results/                                kallisto output (Session 1)
     E-MTAB-7978-transcripts-tpms.tsv        the expression atlas (Sessions 2-6)
     E-MTAB-7978.sdrf.txt                    its sample annotation (Sessions 2-3)
@@ -1834,7 +1845,7 @@ your choosing. The teachers can only reliably help with the ERDA setup.
 | `cannot open file '…': No such file or directory` | You are not in the module folder, or the file was never made. Run `setwd("~/work/module4")` and check the Files pane. |
 | `download.file` stops with a timeout | Run `options(timeout = 600)` and try again; the TAIR server is sometimes slow. |
 | `subscript out of bounds` after setting `target_gene` | The gene ID is not in the matrix — check the AGI code (e.g. `AT5G17420`, capital letters). |
-| `curl: (22) … error: 403` when downloading reads | The server is busy. Wait a minute and run the same command again. |
+| The read check reports `0 reads` | The server was busy. Wait a minute and run that file's `curl` line again (§1.7). |
 | `./bin/kallisto: No such file or directory` | You are not in `~/work/module4` (run `cd ~/work/module4`), or kallisto is not installed yet (§1.3). |
 | `Error: unexpected symbol` / `command not found` | R code in the Terminal, or shell code in the Console — see the table above. |
 | Work disappeared after a session ended | Only `~/work` persists. Anything saved elsewhere was on the temporary machine. |

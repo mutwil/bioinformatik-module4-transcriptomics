@@ -2,7 +2,7 @@
 # in this RStudio session on ERDA. Usage (R console):
 #   source("https://raw.githubusercontent.com/mutwil/bioinformatik-module4-transcriptomics/main/tests/run_workbook.R")
 # Log: ~/work/module4_test_log.txt. Uses a made-up GRN.txt for the mini-project and
-# deletes the 2.3 GB of reads at the end, as the workbook tells students to.
+# deletes the downloaded reads at the end, as the workbook tells students to.
 local({
   url <- "https://raw.githubusercontent.com/mutwil/bioinformatik-module4-transcriptomics/main/index.qmd"
   txt <- paste(readLines(url, warn = FALSE, encoding = "UTF-8"), collapse = "\n")
