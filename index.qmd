@@ -1728,8 +1728,10 @@ afternoon. Cover:
 
 # Appendix — Connecting to RStudio on ERDA {#sec-erda}
 
-Everything in this module runs in RStudio on ERDA. This is how you get there.
-**Do the sign-up before the first class** — it is not instant.
+Everything in this module runs in RStudio on ERDA — the same setup as in the course
+*Big Data in Biotechnology*, so if you took that course you can skip to step 2 and use
+the image you already know. This is how you get there. **Do the sign-up before the
+first class** — it is not instant.
 
 ## 1. Get an ERDA account
 
@@ -1742,14 +1744,17 @@ You only need a web browser. Nothing is installed on your own machine.
 
 ## 2. Start an RStudio session
 
+Once you are logged in to ERDA:
+
 1. On the ERDA home page, click the **Jupyter** app (also in the left icon bar).
 2. Under **Select a Jupyter Service**, stay on the **DAG** tab (*Data Analysis
    Gateway* — the interactive service; MODI is for batch HPC jobs) and press
    **Start DAG**.
 3. You land on **JupyterHub**. Press **Start My Server**.
-4. Under **Server Options → Select a notebook image**, choose the image announced on
-   Absalon — **any image that offers RStudio works**, because this module needs base R
-   only, with no extra packages.
+4. Under **Server Options → Select a notebook image**, choose
+   **Big Data in Biotechnology Notebook** — the course image with RStudio and R set up.
+   Do not take the default Python notebook. (This module uses base R only, so nothing
+   else needs installing.)
 5. When the launcher opens, click **RStudio** (under *Notebook*). The same launcher
    also offers a **Terminal** under *Other*.
 
@@ -1824,6 +1829,7 @@ your choosing. The teachers can only reliably help with the ERDA setup.
 | Symptom | What to do |
 |:--|:--|
 | Session will not start, or times out | Wait and try again; a stuck session usually clears. Sessions end after 2 h of inactivity. |
+| No **RStudio** button in the launcher | You started the wrong notebook image. Stop the server (JupyterHub → **Home** → **Stop My Server**) and start it again with **Big Data in Biotechnology Notebook**. |
 | `Error: object '…' not found` | A variable from an earlier block does not exist (session ended, or a block was skipped). Rerun the session's setup block, then the blocks above the one that failed. |
 | `cannot open file '…': No such file or directory` | You are not in the module folder, or the file was never made. Run `setwd("~/work/module4")` and check the Files pane. |
 | `download.file` stops with a timeout | Run `options(timeout = 600)` and try again; the TAIR server is sometimes slow. |
