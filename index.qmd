@@ -1,6 +1,6 @@
 ---
 title: "Module 4 — Transcriptomics & biological networks"
-subtitle: "Bioinformatik: metoder og anvendelse NPLB24004U · course workbook — all code runs in Google Colab, in your browser"
+subtitle: "Bioinformatik: metoder og anvendelse NPLB24004U · course workbook — all code runs in RStudio on ERDA"
 format:
   html:
     toc: true
@@ -14,55 +14,57 @@ format:
 
 # How this workbook works
 
-Everything in this module runs **in your web browser** — there is nothing to install
-except Cytoscape in week 2. The code runs in **Google Colab**, a free online notebook
-where Google lends you a small Linux computer with Python already set up.
+Nothing on this page runs in the browser. **Every code block is meant to be copied
+into RStudio on ERDA** — the University's own computers, used through your web
+browser, so there is nothing to install except Cytoscape in week 2. If you have not used
+ERDA before, do the [appendix](#sec-erda) **before the first class**. All files live in
+one folder, **`~/work/module4`**; the code downloads every dataset into it for you, so
+every block runs verbatim with no editing.
 
-1. Go to [colab.research.google.com](https://colab.research.google.com), sign in with
-   a Google account and click **New notebook**. Give it a name you will recognise
-   (e.g. `M4Ø1_yourname`).
-2. Every grey code block on this page goes into **one Colab code cell**: hover over the
-   block, click the copy icon in its top-right corner, paste it into a cell and press
-   **Shift + Enter** to run it.
-3. Lines that start with **`!`** are **Linux commands** — Colab runs them in its shell
-   instead of in Python. Leave the `!` in place; it is part of the code.
+Two kinds of code blocks appear:
+
+- plain code blocks are **R** — paste them into the RStudio console (or, better,
+  collect them in a script as you go and run them from there);
+- blocks marked **TERMINAL** are shell commands — paste them into RStudio's
+  **Terminal** tab, *not* the R console.
 
 Some steps end with a *Your turn* question and a folded **Answer** — try it before you
 unfold.
 
-::: {.callout-important title="Colab forgets everything when it disconnects"}
-The Colab computer is temporary. If you close the tab, sit idle for a while, or come
-back the next day, the session is reset: **all downloaded files and all variables are
-gone**. That is why each session below starts with a **setup block** that re-creates
-everything it needs. If you ever see `NameError: name 'df_unique' is not defined` or
-`No such file or directory`, scroll up to the session's setup block and run it again.
-Anything you want to keep (e.g. the network files in Sessions 5–6) you must
-**download to your own computer**.
+All R code on this page uses **base R only** — no packages to install.
+
+::: {.callout-important title="Files stay, variables do not"}
+Everything saved under `~/work` is kept between sessions. But an ERDA session is
+switched off after 2 hours of inactivity, and R's memory goes with it: **all variables
+are gone** when you come back. That is why each session below starts with a **setup
+block** that re-creates everything it needs from the files in `~/work/module4`. If you
+see `Error: object 'expr' not found`, scroll up to the session's setup block and run it
+again — it is quick, because the files are already downloaded.
 :::
 
-Three kinds of boxes appear besides plain code:
+Besides the code, three kinds of boxes appear:
 
 ::: {.run-local}
-Files and setup — what to download, where it goes, and what to rerun after a reset.
+Files and setup — what to download, where it goes, and what to rerun after a break.
 :::
 
 ::: {.web}
 Work done on a database website (UniProt, Expression Atlas, ePlant, STRING …), not in
-Colab.
+RStudio.
 :::
 
-::: {.terminal}
+::: {.cytoscape}
 Work done in the Cytoscape desktop program on your own computer.
 :::
 
 ::: {.provenance}
 All analyses use public *Arabidopsis thaliana* data. Session 1 downloads raw reads
-from the Sequence Read Archive (BioProject PRJNA314076, the Klepikova et al. 2016
+from the European Nucleotide Archive (BioProject PRJNA314076, the Klepikova et al. 2016
 developmental atlas). Sessions 2–6 use the processed version of an Arabidopsis
 organ atlas from the **EBI Expression Atlas** (experiment **E-MTAB-7978**: 56 RNA-seq
 samples from 23 organs and tissues, TPM values), gene descriptions from **TAIR10**,
 and protein–protein interactions from **BioGRID** (release 5.0.250). Everything is
-downloaded straight from the source inside your Colab session.
+downloaded straight from the source into your ERDA folder.
 :::
 
 ---
@@ -79,7 +81,7 @@ Module 4 runs over two weeks, Tuesday and Thursday mornings, plus Thursday after
 | **Week 43**<br>**Tue 20-10**<br>09:00–12:00 | 09:00–09:50 | Lecture **M4F1**: Transcriptomics — background and theory | `M4F1 - Transcriptomics Background and theory.pdf` | |
 | | 09:50–10:05 | *Break* | | |
 | | 10:05–10:20 | Lecture **M4F2**: Normalization metrics in RNA-seq | `M4F2 - Normalization metrics in RNA-seq.pdf` | |
-| | 10:20–12:00 | Exercise **M4Ø1**: Colab basics and estimating gene expression with kallisto | this workbook | [§1](#sec-o1) |
+| | 10:20–12:00 | Exercise **M4Ø1**: RStudio on ERDA, and estimating gene expression with kallisto | this workbook | [§1](#sec-o1) |
 | **Thu 22-10**<br>09:00–12:00<br>13:00–16:00 | 09:00–10:15 | Lecture **M4F3**: Exploratory data analysis (EDA) and data preprocessing | | |
 | | 10:15–10:30 | *Break* | | |
 | | 10:30–12:00 | Exercise **M4Ø2**: EDA and preprocessing | this workbook | [§2](#sec-o2) |
@@ -116,121 +118,111 @@ The block-by-block times and readings are those of the 2025 *Modul 4 ugeplan*. T
 
 ---
 
-# Session M4Ø1 — Colab basics and estimating gene expression with kallisto {#sec-o1}
+# Session M4Ø1 — RStudio on ERDA, and estimating gene expression with kallisto {#sec-o1}
 [Tuesday, week 43]{.session-chip}
 
-Today has two halves. First you learn just enough Colab — text cells, Python cells and
-Linux commands — to work through the module. Then you do what every RNA-seq project
+Today has two halves. First you learn just enough RStudio — the console, a script and
+the Terminal — to work through the module. Then you do what every RNA-seq project
 starts with: download raw sequencing reads and turn them into **gene expression
 values** with *kallisto*.
 
-## 1.1 Colab basics: text cells
+::: {.run-local}
+Start an RStudio session on ERDA ([appendix](#sec-erda)) and make the module folder —
+paste this into the **Console** (once is enough; it does nothing if the folder exists):
 
-Colab notebooks mix **text cells** (notes, written in *Markdown*) with **code cells**.
-Click **+ Text** at the top of the notebook and type:
-
-```markdown
-# My first Markdown cell
-This is **bold**, this is *italic*, and here is a list:
-- Item 1
-- Item 2
-
-You can also add [links](https://colab.research.google.com).
+```r
+dir.create("~/work/module4", showWarnings = FALSE)
+setwd("~/work/module4")
 ```
 
-Press **Shift + Enter** — the cell renders as formatted text.
-
-*Your turn:* make a text cell with a level-2 heading "Colab Basics", one sentence
-explaining what you will learn this week, and a numbered list of three learning goals.
-
-::: {.callout-tip collapse="true" title="Answer"}
-```markdown
-## Colab Basics
-This week I learn how to turn raw RNA-seq reads into expression values and analyse them.
-
-1. Run code and Linux commands in Colab
-2. Estimate gene expression with kallisto
-3. Explore an expression matrix (EDA) and find co-expressed genes
-```
-A level-2 heading has **two** `#` signs; numbered lists just start each line with `1.`,
-`2.`, `3.`.
+`setwd()` (*set working directory*) makes `~/work/module4` the folder R reads from and
+writes to. Each session's setup block starts with it.
 :::
 
-## 1.2 Colab basics: running Python
+## 1.1 RStudio basics: console and script
 
-Code cells run Python by default. Click **+ Code**, paste, and run:
+RStudio has four panes. The **Console** (bottom left) runs whatever you type, at once.
+A **script** (*File → New File → R Script*, top left) is a text file of code you keep:
+put the cursor on a line and press **Ctrl + Enter** (Mac: **Cmd + Enter**) to send that
+line — or a selection — to the console. Lines starting with **`#`** are *comments*: notes
+for humans, which R ignores.
 
-```python
-print("Hello from Python!")
-x = 5
-y = 7
-print("Sum:", x + y)
+Paste this into the console:
+
+```r
+print("Hello from R!")
+x <- 5
+y <- 7
+cat("Sum:", x + y, "\n")
 ```
 
-`x` and `y` are variable *names*; `5` and `7` are their *values*.
+`x` and `y` are variable *names*; `5` and `7` are their *values*; `<-` assigns the value
+to the name.
 
-*Your turn:* write a cell that creates a variable `my_name` holding your first name and
-prints `Hello, my name is ...` using that variable.
+*Your turn:* open a new script and save it as `~/work/module4/M4_session1.R`. Start it
+with a few comment lines: a title, one sentence on what you will learn this week, and
+three learning goals. Then add code that creates a variable `my_name` holding your first
+name and prints `Hello, my name is ...` — and run it from the script.
 
 ::: {.callout-tip collapse="true" title="Answer"}
-```python
-my_name = "Andreas"
-print("Hello, my name is", my_name)
+```r
+# Module 4 — Session 1
+# This week I learn how to turn raw RNA-seq reads into expression values and analyse them.
+# Goals: 1. run R and Linux commands on ERDA
+#        2. estimate gene expression with kallisto
+#        3. explore an expression matrix and find co-expressed genes
+
+my_name <- "Andreas"
+cat("Hello, my name is", my_name, "\n")
 ```
+Keep a script like this for every session — it is your record of what you ran, and you
+can rerun all of it at once with **Source**.
 :::
 
-Learning proper Python is not a goal of this course — but you should be able to
-**read** and **modify** existing Python code to run a transcriptomic analysis. That is
+Learning R programming is not a goal of this module — but you should be able to
+**read** and **modify** existing R code to run a transcriptomic analysis. That is
 exactly what the rest of the module asks of you.
 
-## 1.3 Colab basics: Linux commands
+## 1.2 Terminal basics: Linux commands
 
-Colab runs on **Linux**, so you can run shell commands from a notebook by starting the
-line with `!`. Run each of these in its own cell:
+ERDA runs **Linux**. Click the **Terminal** tab, immediately right of **Console**, to
+get a Linux command line. Programs that are not R — such as kallisto — run here. Paste
+these one at a time:
 
-```python
-# 1. Show where you are (print working directory)
-!pwd
+::: {.terminal}
+```bash
+cd ~/work/module4                              # 1. go to the module folder
+pwd                                            # 2. print working directory: where am I?
+ls                                             # 3. list the files here
+mkdir myfolder                                 # 4. make a folder ...
+ls                                             #    ... and check that it exists
+echo "Hello from Linux" > myfolder/hello.txt   # 5. write text into a new file ...
+cat myfolder/hello.txt                         #    ... and show its contents
 ```
+:::
 
-```python
-# 2. List the files in the current directory
-!ls
-```
-
-```python
-# 3. Create a folder and check that it exists
-!mkdir myfolder
-!ls
-```
-
-```python
-# 4. Create a file with some text in it, then show its contents
-!echo "Hello from Linux" > myfolder/hello.txt
-!cat myfolder/hello.txt
-```
-
-The new folder and file also appear in the **Files** panel (the folder icon on the
-left). Click the file to open it:
-
-![The Files panel in Colab](assets/colab-file-panel.png){.shot width=60%}
+The new folder and file also appear in RStudio's **Files** pane (bottom right) — click
+the file to open it.
 
 *Your turn:* (1) make a folder called `testdir`; (2) inside it, create a file
 `note.txt` containing the text *This is my note*; (3) list the files in `testdir` to
 confirm it worked.
 
 ::: {.callout-tip collapse="true" title="Answer"}
-```python
-!mkdir testdir
-!echo "This is my note" > testdir/note.txt
-!ls testdir
-!cat testdir/note.txt
+```bash
+mkdir testdir
+echo "This is my note" > testdir/note.txt
+ls testdir
+cat testdir/note.txt
 ```
-`echo "..." > file` writes the text into the file. (`!touch testdir/note.txt` would
-also create the file — but empty, without the text.)
+`echo "..." > file` writes the text into the file. (`touch testdir/note.txt` would also
+create the file — but empty, without the text.)
 :::
 
-## 1.4 Install kallisto
+Useful terminal commands: `cd dirname` (enter a folder), `cd ..` (go up), `ls -lh`
+(list with sizes), `mkdir` (make a folder), `pwd` (where am I).
+
+## 1.3 Install kallisto
 
 **Background:** gene expression can be approximated by measuring how much mRNA a gene
 makes. RNA-seq does this by converting mRNA into [cDNA](https://www.youtube.com/watch?v=-kTcFZxP6kM&t=663s)
@@ -239,58 +231,92 @@ makes. RNA-seq does this by converting mRNA into [cDNA](https://www.youtube.com/
 many reads come from each gene tells you how highly it is expressed relative to the
 other genes.
 
-*kallisto* is the program that does the counting. Install it with Linux commands:
+*kallisto* is the program that does the counting. **It is a Linux program, not an R
+package**, so it is installed and run in the **Terminal**. Paste this complete
+installation script:
 
-```python
-# Download kallisto v0.46.0
-!wget -q https://github.com/pachterlab/kallisto/releases/download/v0.46.0/kallisto_linux-v0.46.0.tar.gz
-# Unpack the archive
-!tar -xf kallisto_linux-v0.46.0.tar.gz
-# Install it by copying the program into a folder where Linux looks for programs
-!cp kallisto/kallisto /usr/local/bin/
-# Run the program and ask for its version
-!kallisto version
+::: {.terminal}
+```bash
+set -euo pipefail
+
+mkdir -p ~/work/module4/bin
+cd ~/work/module4
+
+install_tmp="$(mktemp -d)"
+trap 'rm -rf "$install_tmp"' EXIT
+
+curl -fL --retry 3 -o "$install_tmp/kallisto.tar.gz" \
+  https://github.com/pachterlab/kallisto/releases/download/v0.46.1/kallisto_linux-v0.46.1.tar.gz
+
+tar -xzf "$install_tmp/kallisto.tar.gz" -C "$install_tmp"
+cp "$install_tmp/kallisto/kallisto" bin/kallisto
+chmod u+x bin/kallisto
+
+./bin/kallisto version
 ```
+:::
 
-To see which commands and parameters kallisto takes, run it without any:
+This downloads kallisto **0.46.1** from its official release, puts the program in
+`~/work/module4/bin/`, and checks that it runs — the last line should print the version.
+`chmod u+x` gives your account permission to execute the file; no administrator rights
+are needed. (`set -euo pipefail` makes the script stop at the first error, and the
+`trap` line cleans up the temporary download folder.)
 
-```python
-!kallisto
+Because kallisto lives in the module folder, you always run it as **`./bin/kallisto`**
+from `~/work/module4` — the `./` means "the program in this folder". To see which
+commands and parameters it takes, run it without any:
+
+::: {.terminal}
+```bash
+cd ~/work/module4
+./bin/kallisto
 ```
+:::
 
-## 1.5 Download the Arabidopsis coding sequences
+## 1.4 Download the Arabidopsis coding sequences
 
 kallisto needs the **sequences of all transcripts** of your organism — here the coding
 sequences (CDS) of *Arabidopsis thaliana* — to build an *index*. The index lets
 kallisto match RNA-seq reads to transcripts in a very time- and memory-efficient
 way, which is what made it so popular.
 
-```python
+::: {.terminal}
+```bash
+cd ~/work/module4
 # Coding sequences of the representative gene model of every Arabidopsis gene (TAIR10)
-!wget -q -O TAIR10_cds.fa "https://www.arabidopsis.org/api/download-files/download?filePath=Genes/TAIR10_genome_release/TAIR10_blastsets/TAIR10_cds_20110103_representative_gene_model_updated"
-print("CDS file downloaded")
+curl -fL --retry 5 -o TAIR10_cds.fa \
+  "https://www.arabidopsis.org/api/download-files/download?filePath=Genes/TAIR10_genome_release/TAIR10_blastsets/TAIR10_cds_20110103_representative_gene_model_updated"
 
-# Inspect the first lines of the file
-!head TAIR10_cds.fa
+# Inspect the first lines, and count the sequences (every sequence starts with ">")
+head -n 2 TAIR10_cds.fa
+grep -c ">" TAIR10_cds.fa
 ```
+:::
+
+You should see a header line starting with `>AT1G50920.1` followed by DNA, and
+**27,416** sequences.
 
 kallisto does **pseudoalignment**: instead of aligning every read base by base, it
 looks up which transcripts each read *could* come from. For that it cuts the
 transcriptome into short words of length *k* (*k*-mers, by default k = 31) and builds
 a lookup table — for every *k*-mer, which transcripts contain it.
 
-## 1.6 Build the kallisto index
+## 1.5 Build the kallisto index
 
 `kallisto index` builds that lookup table. After `-i` you give the name of the
 **index file to create**, followed by the **FASTA file to read**:
 
-```python
-!kallisto index -i TAIR10_index.idx TAIR10_cds.fa
+::: {.terminal}
+```bash
+cd ~/work/module4
+./bin/kallisto index -i TAIR10_index.idx TAIR10_cds.fa
 ```
+:::
 
-This takes a few minutes. Read on while it runs.
+This takes a few minutes and makes a 680 MB file. It only has to be done once — every
+later `kallisto quant` reuses the `.idx` file. Read on while it runs.
 
-## 1.7 The Sequence Read Archive (SRA)
+## 1.6 The Sequence Read Archive (SRA)
 
 With the index built, we need raw RNA-seq reads. There is a vast amount of public data
 in the **Sequence Read Archive (SRA)**, which stores raw reads from RNA-seq and every
@@ -328,43 +354,55 @@ e. The samples form a **tissue and organ atlas** of Arabidopsis development — 
 f. **50 bases** (single-end).
 :::
 
-## 1.8 Download reads for two organs
+## 1.7 Download reads for two organs
 
 We will look at **cellulose synthase 4** (*CESA4*), which makes cellulose — the most
 abundant polymer on Earth — in plant secondary cell walls. Download one sample each
 from a mature **leaf** and a stem **internode**, plus a third sample that will
 demonstrate something.
 
-```python
-# SRA toolkit, which contains fasterq-dump for downloading reads
-!apt-get -qq install -y sra-toolkit
-!mkdir -p sra_fastq
+Every SRA run is mirrored by the **European Nucleotide Archive (ENA)**, which serves it
+directly as a compressed FASTQ file — so a plain `curl` download is all we need:
+
+::: {.terminal}
+```bash
+cd ~/work/module4
+mkdir -p reads
+ena="https://ftp.sra.ebi.ac.uk/vol1/fastq"
 
 # Leaf, mature (L.lg)
-!fasterq-dump SRR3581681 -O sra_fastq
+curl -fL --retry 5 --retry-delay 10 --retry-all-errors -o reads/SRR3581681.fastq.gz \
+  $ena/SRR358/001/SRR3581681/SRR3581681.fastq.gz
 # Internode (IN)
-!fasterq-dump SRR3581705 -O sra_fastq
+curl -fL --retry 5 --retry-delay 10 --retry-all-errors -o reads/SRR3581705.fastq.gz \
+  $ena/SRR358/005/SRR3581705/SRR3581705.fastq.gz
 # And another sample, to demonstrate something :)
-!fasterq-dump SRR34314723 -O sra_fastq
+curl -fL --retry 5 --retry-delay 10 --retry-all-errors -o reads/SRR34314723_1.fastq.gz \
+  $ena/SRR343/023/SRR34314723/SRR34314723_1.fastq.gz
 
-# Show the downloaded files
-!ls -lh sra_fastq
+ls -lh reads
 ```
+:::
 
-The two Arabidopsis files are about **6 GB each** — expect the downloads to take
-several minutes. Run `!fasterq-dump` without arguments if you are curious about its
-many options; the defaults are fine for us.
+The two Arabidopsis files are about **1.1 GB each** (compressed) — expect a few minutes
+per file. If the whole class downloads at once, the server may briefly refuse
+(`error: 403`); `--retry` makes `curl` try again by itself. (NCBI's own tool for the same
+job is `fasterq-dump` from the SRA Toolkit; it writes uncompressed FASTQ, about 6 GB per
+file here.)
 
-Look at the first reads of one file:
+Look at the first reads of one file — `zcat` unpacks on the fly:
 
-```python
-!head -8 sra_fastq/SRR3581681.fastq
+::: {.terminal}
+```bash
+cd ~/work/module4
+zcat reads/SRR3581681.fastq.gz | head -n 8
 ```
+:::
 
 This format should look familiar — it is FASTQ, covered in the first weeks of the
 course: four lines per read (name, sequence, `+`, quality string).
 
-## 1.9 Quantify expression with kallisto
+## 1.8 Quantify expression with kallisto
 
 We now have all three ingredients:
 
@@ -376,17 +414,27 @@ We now have all three ingredients:
 file. These reads are **single-end** (each fragment was read from one end only), so
 kallisto cannot measure fragment lengths itself — we give it the typical library
 fragment length and its standard deviation with `--single -l 200 -s 20`. (For
-paired-end data, which is most data today, you leave these out.)
+paired-end data, which is most data today, you leave these out and give both files.)
+`-t 4` uses four processor cores.
 
-```python
-!kallisto quant -i TAIR10_index.idx -o SRR3581681/ sra_fastq/SRR3581681.fastq --single -l 200 -s 20
-!kallisto quant -i TAIR10_index.idx -o SRR3581705/ sra_fastq/SRR3581705.fastq --single -l 200 -s 20
-!kallisto quant -i TAIR10_index.idx -o SRR34314723/ sra_fastq/SRR34314723_1.fastq --single -l 200 -s 20
+::: {.terminal}
+```bash
+cd ~/work/module4
+mkdir -p results
+./bin/kallisto quant -i TAIR10_index.idx -o results/SRR3581681 -t 4 \
+  --single -l 200 -s 20 reads/SRR3581681.fastq.gz
+./bin/kallisto quant -i TAIR10_index.idx -o results/SRR3581705 -t 4 \
+  --single -l 200 -s 20 reads/SRR3581705.fastq.gz
+./bin/kallisto quant -i TAIR10_index.idx -o results/SRR34314723 \
+  --single -l 200 -s 20 reads/SRR34314723_1.fastq.gz
 ```
+:::
 
-This runs for a few minutes per sample.
+The backslash `\` continues a command on the next line — paste each command whole.
+This runs for a few minutes per sample. Watch what kallisto prints: the line
+`processed … reads, … reads pseudoaligned` is your first sign of trouble.
 
-## 1.10 kallisto's output files
+## 1.9 kallisto's output files
 
 Each output folder contains three files:
 
@@ -396,9 +444,17 @@ Each output folder contains three files:
 | `abundance.h5` | binary (HDF5) | the same abundances plus bootstraps and metadata | downstream tools such as *sleuth* |
 | `run_info.json` | text (JSON) | how the run went: command, number of reads, versions | quality control and reproducibility |
 
-Open each folder in the Files panel and look at the `run_info.json` files (or print
-them with `!cat SRR3581681/run_info.json`). What does each line mean? The
-[kallisto manual](https://pachterlab.github.io/kallisto/starting) helps.
+Look at the `run_info.json` files — open them from the **Files** pane, or print them:
+
+::: {.terminal}
+```bash
+cd ~/work/module4
+cat results/SRR3581681/run_info.json
+cat results/SRR34314723/run_info.json
+```
+:::
+
+What does each line mean? The [kallisto manual](https://pachterlab.github.io/kallisto/starting) helps.
 
 ::: {.callout-tip collapse="true" title="Answer"}
 - `n_targets` — number of transcripts in the index (what kallisto can map to)
@@ -426,33 +482,29 @@ far too shallow to say anything. The lesson: always check `run_info.json` (or th
 console) before you trust a sample, and check the metadata of anything you download.
 :::
 
-## 1.11 Is CESA4 expressed where you would expect?
+## 1.10 Is CESA4 expressed where you would expect?
 
-Secondary cell walls are thick, cellulose-rich walls laid down in cells that need
-mechanical strength — the vasculature of stems (internodes) and roots. Read the two
-`abundance.tsv` files and pull out CESA4:
+Back to R — click the **Console** tab. Secondary cell walls are thick, cellulose-rich
+walls laid down in cells that need mechanical strength — the vasculature of stems
+(internodes) and roots. Read the two `abundance.tsv` files and pull out CESA4:
 
-```python
-import pandas as pd
+```r
+setwd("~/work/module4")
 
-# Paths to the two abundance files
-files = {
-    "Leaf": "SRR3581681/abundance.tsv",
-    "Internode": "SRR3581705/abundance.tsv"
-}
+# The abundance file of each sample
+files <- c(Leaf      = "results/SRR3581681/abundance.tsv",
+           Internode = "results/SRR3581705/abundance.tsv")
 
 # Transcript ID of CESA4 in Arabidopsis
-cesa4_id = "AT5G44030.1"
+cesa4_id <- "AT5G44030.1"
 
-cesa4_expr = {}
-for sample, path in files.items():
-    df = pd.read_csv(path, sep="\t")
-    # kallisto reports transcripts in the 'target_id' column
-    match = df[df["target_id"].str.contains(cesa4_id, case=False)]
-    cesa4_expr[sample] = match["tpm"].sum()   # sum, in case several transcripts match
-
-cesa4_df = pd.DataFrame.from_dict(cesa4_expr, orient="index", columns=["TPM"])
-print(cesa4_df)
+cesa4_tpm <- c()
+for (sample in names(files)) {
+  abundance <- read.delim(files[sample])
+  # kallisto reports transcripts in the target_id column
+  cesa4_tpm[sample] <- abundance$tpm[abundance$target_id == cesa4_id]
+}
+data.frame(TPM = cesa4_tpm)
 ```
 
 *Your turn:* does the expression of CESA4 match its function?
@@ -462,6 +514,11 @@ Yes. CESA4 is at about **2 TPM** in the leaf but about **147 TPM** in the intern
 roughly 60 times higher. Stems are full of vascular tissue with secondary cell walls,
 leaves much less so, so a secondary-wall cellulose synthase should be highest in the
 internode.
+:::
+
+::: {.run-local}
+**Free up space when you are done.** The reads take 2.3 GB of your ERDA storage and are
+not needed again. In the Terminal: `rm -r ~/work/module4/reads`
 :::
 
 ---
@@ -481,75 +538,73 @@ and one bad sample can ruin every analysis downstream. **Exploratory data analys
 ## 2.1 Download and load the expression matrix
 
 In Session 1 you processed two samples of the Klepikova developmental atlas by hand.
-Now we download a whole processed atlas — a **TPM matrix** with every gene in every
+Now we use a whole processed atlas — a **TPM matrix** with every gene in every
 sample — from the EBI Expression Atlas, together with the **SDRF** sample annotation
 file that says which organ each sample came from.
 
 ::: {.run-local}
-This block is also the **setup block** for Session 2 — rerun it (then §2.1's second
-block) if Colab has reset.
+This is the **setup block** for Session 2. It downloads the two files the first time
+(about 8 MB) and only loads them after that — rerun it after any break.
 :::
 
-```python
-import pandas as pd
+```r
+setwd("~/work/module4")
+options(timeout = 600)   # allow slow downloads (R's default limit is 60 seconds)
 
-# The expression matrix (TPM values) and the sample annotation file
-!wget -q -O E-MTAB-7978-transcripts-tpms.tsv https://ftp.ebi.ac.uk/pub/databases/microarray/data/atlas/experiments/E-MTAB-7978/E-MTAB-7978-transcripts-tpms.tsv
-!wget -q -O E-MTAB-7978.sdrf.txt https://ftp.ebi.ac.uk/pub/databases/microarray/data/atlas/experiments/E-MTAB-7978/E-MTAB-7978.sdrf.txt
+atlas <- "https://ftp.ebi.ac.uk/pub/databases/microarray/data/atlas/experiments/E-MTAB-7978/"
+if (!file.exists("E-MTAB-7978-transcripts-tpms.tsv"))
+  download.file(paste0(atlas, "E-MTAB-7978-transcripts-tpms.tsv"), "E-MTAB-7978-transcripts-tpms.tsv")
+if (!file.exists("E-MTAB-7978.sdrf.txt"))
+  download.file(paste0(atlas, "E-MTAB-7978.sdrf.txt"), "E-MTAB-7978.sdrf.txt")
 
-# Load the sample metadata and map each sequencing run (ERR...) to its organ
-meta = pd.read_csv("E-MTAB-7978.sdrf.txt", sep="\t")
-sample_to_organ = meta[["Comment[ENA_RUN]", "Characteristics[organism part]"]].drop_duplicates()
-sample_to_organ_dict = sample_to_organ.set_index("Comment[ENA_RUN]")["Characteristics[organism part]"].to_dict()
-
-# Preview the first five run -> organ pairs
-list(sample_to_organ_dict.items())[:5]
-```
-
-Now load the matrix and replace the run IDs by organ names:
-
-```python
-import pandas as pd
-
-# 1. Load the TPM expression matrix
-df = pd.read_csv("E-MTAB-7978-transcripts-tpms.tsv", sep="\t")
+# 1. The TPM table. check.names = FALSE keeps column names such as "Gene ID" as they are
+tpm <- read.delim("E-MTAB-7978-transcripts-tpms.tsv", check.names = FALSE)
 
 # 2. Keep only the primary transcript of each gene (transcript ID ends with ".1")
-df = df[df["GeneID"].str.endswith(".1")].copy()
+tpm <- tpm[endsWith(tpm$GeneID, ".1"), ]
 
-# 3. Sample columns are named after their run (ERR...); rename them to organ names
-df_renamed = df.copy().fillna(0)
-df_renamed.rename(columns=sample_to_organ_dict, inplace=True)
+# 3. The sample annotation: which organ each sequencing run (ERR...) comes from
+meta <- read.delim("E-MTAB-7978.sdrf.txt", check.names = FALSE)
+run_to_organ <- unique(meta[, c("Comment[ENA_RUN]", "Characteristics[organism part]")])
+head(run_to_organ)
 
-# 4. Drop the columns we do not need; keep "Gene ID" + one column per sample
-df_renamed = df_renamed.drop(columns=["Gene Name", "GeneID"], errors="ignore")
+# 4. The expression matrix: one row per gene, one column per sample
+sample_cols <- grep("^ERR", colnames(tpm), value = TRUE)
+expr <- as.matrix(tpm[, sample_cols])
+rownames(expr) <- tpm[["Gene ID"]]
+expr[is.na(expr)] <- 0
 
-# 5. Show the first rows
-df_renamed.head()
+# 5. Name each column after its organ instead of its run ID
+colnames(expr) <- run_to_organ[["Characteristics[organism part]"]][
+  match(sample_cols, run_to_organ[["Comment[ENA_RUN]"]])]
+
+dim(expr)
+expr[1:5, 1:4]
 ```
 
-Genes are in rows (e.g. AT1G01010) and the **56 samples** in columns. Several organs
-were sampled more than once, so the same organ name appears in several columns — these
-are the biological replicates.
+`dim()` reports the matrix size: **27,619 genes** in rows and **56 samples** in
+columns. Several organs were sampled more than once, so the same organ name appears in
+several columns — these are the biological replicates.
 
 ## 2.2 How many genes are expressed?
 
 There is no hard rule for when to call a gene "expressed", but a common choice is
 **TPM > 1 in at least one sample**:
 
-```python
+```r
 # TPM threshold for calling a gene expressed
-threshold = 1.0
+threshold <- 1
 
-# True for every gene (row) that is above the threshold in at least one sample.
-# axis=1 looks along rows; axis=0 would look along columns.
-expressed_mask = (df_renamed.iloc[:, 1:] > threshold).any(axis=1)
-expressed_genes = df_renamed[expressed_mask]
+# TRUE for every gene (row) above the threshold in at least one sample
+expressed <- rowSums(expr > threshold) > 0
 
-print(f"{df_renamed.shape[0]} genes are present in the original expression matrix.")
-print(f"{expressed_genes.shape[0]} genes are expressed at TPM > {threshold} in at least one sample.")
-print("Thus, we removed", df_renamed.shape[0] - expressed_genes.shape[0], "lowly expressed genes.")
+cat(nrow(expr), "genes are present in the original expression matrix.\n")
+cat(sum(expressed), "genes are expressed at TPM >", threshold, "in at least one sample.\n")
+cat("Thus, we removed", sum(!expressed), "lowly expressed genes.\n")
 ```
+
+`expr > threshold` gives a TRUE/FALSE matrix; `rowSums()` counts the TRUEs in each row,
+i.e. in how many samples each gene is above the threshold.
 
 *Your turn:* change the threshold to 10 and then 100. What happens? Is this expected?
 
@@ -569,23 +624,13 @@ organs, nearly every gene is switched on in at least one place.
 
 Before any comparison between samples, look at the **distribution** of expression
 values in each sample. TPM values are extremely skewed — a few genes are expressed
-thousands of times higher than the rest. Plot the raw values first:
+thousands of times higher than the rest. Plot the raw values first (click **Zoom** in
+the Plots pane to see the plot full size):
 
-```python
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-# Only the numeric sample columns (exclude "Gene ID")
-expr_data = df_renamed.iloc[:, 1:]
-
-plt.figure(figsize=(14, 8))
-sns.boxplot(data=expr_data, orient="v")
-plt.xticks(rotation=90)
-plt.ylabel("TPM")
-plt.title("Distribution of raw TPM values across samples")
-plt.tight_layout()
-plt.show()
+```r
+par(mar = c(12, 4, 2, 1))   # a wide bottom margin for the long organ names
+boxplot(expr, las = 2, cex.axis = 0.7, ylab = "TPM",
+        main = "Distribution of raw TPM values across samples")
 ```
 
 That is pretty useless: a handful of genes with enormous TPM values (the highest, in
@@ -595,17 +640,13 @@ Taking **log₂(TPM + 1)** compresses large values and makes the distributions f
 symmetrical; the **+1** lets us take the log of genes with TPM = 0. It is one line of
 code:
 
-```python
+```r
 # Apply log2(TPM + 1) to every value of the matrix
-log_expr = np.log2(expr_data + 1)
+log_expr <- log2(expr + 1)
 
-plt.figure(figsize=(14, 8))
-sns.boxplot(data=log_expr, orient="v")
-plt.xticks(rotation=90)
-plt.ylabel("log₂(TPM + 1)")
-plt.title("Distribution of log₂(TPM+1) across samples")
-plt.tight_layout()
-plt.show()
+par(mar = c(12, 4, 2, 1))
+boxplot(log_expr, las = 2, cex.axis = 0.7, ylab = "log2(TPM + 1)",
+        main = "Distribution of log2(TPM + 1) across samples")
 ```
 
 What to look for: **similar shapes** and **aligned medians** across samples mean
@@ -644,37 +685,21 @@ standard first look at an RNA-seq dataset:
 If biological replicates sit together, the experiment is consistent. A sample far away
 from everything else may be an outlier worth investigating — and possibly removing.
 
-```python
-from sklearn.decomposition import PCA
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
-
-# Numeric values only, samples as rows (.T transposes the matrix)
-filtered = df_renamed.apply(pd.to_numeric, errors="coerce").iloc[:, 1:].fillna(0).T
-
-# Make sample names unique (several samples share an organ name)
-filtered.index = pd.Series(filtered.index).astype(str)
-if not filtered.index.is_unique:
-    filtered.index = filtered.index + "_" + pd.Series(range(len(filtered))).astype(str)
+```r
+# Samples as rows, genes as columns: t() transposes the matrix
+samples <- t(expr)
+# Unique sample names (several samples share an organ name): organ_number
+rownames(samples) <- paste0(colnames(expr), "_", seq_len(ncol(expr)))
 
 # PCA on the raw TPM values
-pca = PCA(n_components=2)
-pca_result = pca.fit_transform(filtered)
-pca_df = pd.DataFrame(pca_result, columns=["PC1", "PC2"], index=filtered.index)
+pca <- prcomp(samples)
+pc_var <- round(100 * summary(pca)$importance["Proportion of Variance", 1:2], 1)
 
-# Plot, with each sample labelled
-plt.figure(figsize=(10, 7))
-sns.scatterplot(data=pca_df, x="PC1", y="PC2", s=100)
-for sample_id in pca_df.index:
-    x, y = pca_df.loc[sample_id]
-    plt.text(x + 0.2, y, str(sample_id), fontsize=9)
-plt.title("PCA of RNA-seq samples (raw TPM)")
-plt.xlabel(f"PC1 ({pca.explained_variance_ratio_[0]*100:.1f}%)")
-plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1]*100:.1f}%)")
-plt.grid(True)
-plt.tight_layout()
-plt.show()
+par(mar = c(5, 4, 2, 1))
+plot(pca$x[, "PC1"], pca$x[, "PC2"], pch = 19,
+     xlab = paste0("PC1 (", pc_var[1], "%)"), ylab = paste0("PC2 (", pc_var[2], "%)"),
+     main = "PCA of RNA-seq samples (raw TPM)")
+text(pca$x[, "PC1"], pca$x[, "PC2"], labels = rownames(samples), pos = 4, cex = 0.6)
 ```
 
 *Your turn:* what does the plot look like? Why — and what should be improved to make
@@ -692,44 +717,36 @@ a few genes from dominating (filtering, scaling). We fix this in §2.7.
 
 A sample distance heatmap shows how different every sample is from every other sample,
 with the samples reordered by clustering so that similar samples sit next to each other.
-Functions like these have many parameters you can tweak — the
-[distance metric](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html)
-and the [colour palette](https://seaborn.pydata.org/tutorial/color_palettes.html), for
-example.
+You can change both the **distance measure** and the **colour palette**.
 
-```python
-from scipy.spatial.distance import pdist, squareform
-import seaborn as sns
-import matplotlib.pyplot as plt
-
+```r
 # Pairwise Euclidean distances between samples
-distance_matrix = pd.DataFrame(
-    squareform(pdist(filtered, metric="euclidean")),
-    index=filtered.index,
-    columns=filtered.index
-)
+d <- dist(samples, method = "euclidean")
 
-# Heatmap, with samples clustered on both axes
-sns.clustermap(distance_matrix, cmap="viridis", figsize=(16, 16))
-plt.title("Sample Distance Heatmap")
-plt.show()
+# Cluster the samples on these distances, then draw the heatmap in that order
+hc <- hclust(d, method = "average")
+heatmap(as.matrix(d), Rowv = as.dendrogram(hc), symm = TRUE,
+        col = hcl.colors(50, "viridis"), cexRow = 0.6, cexCol = 0.6,
+        margins = c(10, 10), main = "Sample distances")
 ```
 
-(A `ClusterWarning` about an "uncondensed distance matrix" may appear — it is harmless.)
+Dark cells are similar pairs of samples, bright cells different ones.
 
 *Your turn:*
 
-- change `metric="euclidean"` to `"correlation"`;
-- change `cmap="viridis"` to `"plasma"`;
+- change the distance to a **correlation distance** — replace the first line by
+  `d <- as.dist(1 - cor(t(samples)))` (two samples whose profiles are perfectly
+  correlated get distance 0);
+- change the palette `"viridis"` to `"plasma"`;
 - which samples cluster together — replicates of the same organ, or different organs?
 
 ::: {.callout-tip collapse="true" title="Answer"}
 Many replicates do sit together — the rosette leaves, the flowers, the roots — but the
 picture is dominated by the **seed** samples, which form their own extreme block, and
-the remaining organs are poorly resolved. Switching to `"correlation"` compares the
-*shape* of the profiles rather than their absolute size, yet on raw TPM it barely helps:
-a Pearson correlation of raw values is itself driven by the few genes with enormous
-values. The colour map changes only the look, not the result. The real fix is
+the remaining organs are poorly resolved. Switching to a correlation distance compares
+the *shape* of the profiles rather than their absolute size, yet on raw TPM it barely
+helps: a Pearson correlation of raw values is itself driven by the few genes with
+enormous values. The palette changes only the look, not the result. The real fix is
 preprocessing (§2.7).
 :::
 
@@ -738,32 +755,28 @@ preprocessing (§2.7).
 Sometimes you only want to see how the samples cluster, without the heatmap — that is a
 **dendrogram**:
 
-```python
-from scipy.cluster.hierarchy import linkage, dendrogram
-
+```r
 # Hierarchical clustering (Ward's method)
-Z = linkage(filtered, method="ward")
+hc <- hclust(dist(samples), method = "ward.D2")
 
-plt.figure(figsize=(12, 6))
-dendrogram(Z, labels=filtered.index, leaf_rotation=90)
-plt.title("Hierarchical Clustering of RNA-seq Samples")
-plt.ylabel("Distance")
-plt.tight_layout()
-plt.show()
+par(mar = c(2, 4, 2, 1))
+plot(hc, cex = 0.6, xlab = "", sub = "", main = "Hierarchical clustering of RNA-seq samples")
 ```
 
-*Your turn:* change `method="ward"` to `"average"`, `"complete"` or `"single"`. How
-does the method change the clustering? Do samples from the same organ cluster together —
-does it match known biology?
+*Your turn:* change `method = "ward.D2"` to `"average"`, `"complete"` or `"single"`.
+How does the method change the clustering? Do samples from the same organ cluster
+together — does it match known biology?
 
 ::: {.callout-tip collapse="true" title="Answer"}
 Largely yes: replicates of the same organ (the many rosette leaves, the flowers, the
 siliques, the roots) end up in the same branches. But look at the very first split:
 five **seed** samples on one side, all 51 other samples on the other — the seeds'
-extreme values again dominate. The linkage method changes
-the tree noticeably — `single` linkage tends to "chain" samples one at a time onto a
-growing cluster, while `ward` and `complete` give compact, balanced groups. There is no
-single correct method; a grouping that survives several methods is more trustworthy.
+extreme values again dominate.
+
+The linkage method changes the tree noticeably — `single` linkage tends to "chain"
+samples one at a time onto a growing cluster, while `ward.D2` and `complete` give
+compact, balanced groups. There is no single correct method; a grouping that survives
+several methods is more trustworthy.
 :::
 
 ## 2.7 Preprocessing
@@ -783,83 +796,69 @@ This improves the clustering and interpretability of PCA plots, helps you spot r
 outliers and batch effects, and focuses the analysis on biologically relevant variation.
 
 The code below does the four steps in order. You can switch a step off by changing its
-`if True:` to `if False:`.
+`if (TRUE)` to `if (FALSE)`.
 
-```python
-import pandas as pd
-import numpy as np
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-import matplotlib.pyplot as plt
-import seaborn as sns
+```r
+x <- expr
 
-# Only the numeric expression columns
-expression_data = df_renamed.iloc[:, 1:]
-# A unique name for each sample: organ_number
-sample_names = [f"{name}_{i}" for i, name in enumerate(expression_data.columns, start=1)]
+if (TRUE) {   # Step 1. Keep genes with TPM > 1 in at least half of the samples
+  min_samples <- ncol(x) %/% 2
+  x <- x[rowSums(x > 1) >= min_samples, ]
+}
 
-if True:  # Step 1. Filter out lowly expressed genes
-    min_samples = expression_data.shape[1] // 2   # half of the samples
-    expression_data = expression_data[(expression_data > 1).sum(axis=1) >= min_samples]
+if (TRUE) {   # Step 2. Keep the 5,000 most variable genes
+  gene_var <- apply(x, 1, var)
+  x <- x[order(gene_var, decreasing = TRUE)[1:min(5000, nrow(x))], ]
+}
 
-if True:  # Step 2. Keep the top 5,000 most variable genes
-    top_n = min(5000, expression_data.shape[0])
-    expression_data = expression_data.loc[expression_data.var(axis=1).nlargest(top_n).index]
+if (TRUE) {   # Step 3. log2(TPM + 1)
+  x <- log2(x + 1)
+}
 
-if True:  # Step 3. log2(TPM + 1)
-    expression_data = np.log2(expression_data + 1)
+samples_pre <- t(x)                          # samples as rows again
+rownames(samples_pre) <- rownames(samples)
+samples_pre <- samples_pre[, apply(samples_pre, 2, var) > 0]   # drop genes that never vary
 
-if True:  # Step 4. Standardise each gene (samples as rows, so we transpose)
-    expression_data_transposed = StandardScaler().fit_transform(expression_data.T)
-else:
-    expression_data_transposed = expression_data.T
+if (TRUE) {   # Step 4. Standardise each gene (column) to mean 0, variance 1
+  samples_pre <- scale(samples_pre)
+}
 
-# PCA
-pca = PCA(n_components=2)
-pca_result = pca.fit_transform(expression_data_transposed)
-pca_df = pd.DataFrame(pca_result, columns=["PC1", "PC2"], index=sample_names)
+pca <- prcomp(samples_pre)
+pc_var <- round(100 * summary(pca)$importance["Proportion of Variance", 1:2], 1)
 
-plt.figure(figsize=(10, 7))
-sns.scatterplot(data=pca_df, x="PC1", y="PC2", s=100)
-for sample_id in pca_df.index:
-    plt.text(float(pca_df.loc[sample_id, "PC1"]) + 0.2,
-             float(pca_df.loc[sample_id, "PC2"]), str(sample_id), fontsize=9)
-plt.title("PCA of RNA-seq samples (preprocessed)")
-plt.xlabel(f"PC1 ({pca.explained_variance_ratio_[0]*100:.1f}%)")
-plt.ylabel(f"PC2 ({pca.explained_variance_ratio_[1]*100:.1f}%)")
-plt.grid(True)
-plt.tight_layout()
-plt.show()
+par(mar = c(5, 4, 2, 1))
+plot(pca$x[, "PC1"], pca$x[, "PC2"], pch = 19,
+     xlab = paste0("PC1 (", pc_var[1], "%)"), ylab = paste0("PC2 (", pc_var[2], "%)"),
+     main = "PCA of RNA-seq samples (preprocessed)")
+text(pca$x[, "PC1"], pca$x[, "PC2"], labels = rownames(samples_pre), pos = 4, cex = 0.6)
+
+dim(x)   # genes kept, samples
 ```
 
 *Your turn:* how does the PCA compare to §2.4? Then switch the steps off one at a time —
 which step makes the biggest difference?
 
 ::: {.callout-tip collapse="true" title="Answer"}
-With 56 samples the plot is still busy, but it is a big improvement: the samples now
-spread out over both PCs and organs form recognisable groups instead of "seed vs. the
-rest". The **log transform** (step 3) makes the largest difference — switch it off and
-the extreme genes take over again. The filter in step 1 keeps 15,089 genes; step 2
+With 56 samples the plot is still busy, but it is a big improvement. PC1 now picks out
+the organs that are genuinely different — **pollen** far to the right, then the seeds
+and stamen — while PC2 orders everything else by biology: roots, root tips and callus
+at the top, siliques and flowers in the middle, leaves, petioles and cotyledons at the
+bottom. Organs form recognisable groups instead of "seed vs. the rest". The **log
+transform** (step 3) makes the largest difference — switch it off and the extreme genes
+take over again. The filter in step 1 keeps 15,089 genes; step 2
 then narrows them to the 5,000 most variable.
 :::
 
-Now rerun the sample distance heatmap from §2.5, this time on the preprocessed data:
+Now redraw the sample distance heatmap from §2.5, this time on the preprocessed data
+(log-transformed, not standardised):
 
-```python
-from scipy.spatial.distance import pdist, squareform
-
-# Samples as rows, genes as columns
-X = expression_data.T.astype("float32")
-
-distance_matrix = pd.DataFrame(
-    squareform(pdist(X, metric="euclidean")),
-    index=X.index,
-    columns=X.index
-)
-
-sns.clustermap(distance_matrix, cmap="viridis", figsize=(16, 16))
-plt.title("Sample Distance Heatmap (preprocessed)")
-plt.show()
+```r
+d <- dist(t(x))
+hc <- hclust(d, method = "average")
+heatmap(as.matrix(d), Rowv = as.dendrogram(hc), symm = TRUE,
+        labRow = rownames(samples), labCol = rownames(samples),
+        col = hcl.colors(50, "viridis"), cexRow = 0.6, cexCol = 0.6,
+        margins = c(10, 10), main = "Sample distances (preprocessed)")
 ```
 
 *Your turn:* do you see an improvement?
@@ -871,17 +870,13 @@ cluster together instead of being scattered, and the leaf samples form one block
 
 And the dendrogram:
 
-```python
-from scipy.cluster.hierarchy import linkage, dendrogram
+```r
+hc <- hclust(dist(t(x)), method = "ward.D2")
+hc$labels <- rownames(samples)
 
-Z = linkage(expression_data.T, method="ward")
-
-plt.figure(figsize=(12, 6))
-dendrogram(Z, labels=filtered.index, leaf_rotation=90)
-plt.title("Hierarchical Clustering of RNA-seq Samples (preprocessed)")
-plt.ylabel("Distance")
-plt.tight_layout()
-plt.show()
+par(mar = c(2, 4, 2, 1))
+plot(hc, cex = 0.6, xlab = "", sub = "",
+     main = "Hierarchical clustering of RNA-seq samples (preprocessed)")
 ```
 
 *Your turn:* is the dendrogram clearer? What has changed?
@@ -914,42 +909,33 @@ for a perfect positive correlation, 0 for none, −1 for a perfect negative one.
 To build intuition, here are five made-up genes, A–E, measured in six samples. Compare
 gene A with each of the others:
 
-```python
-import pandas as pd
-from scipy.stats import pearsonr
+```r
+toy <- data.frame(
+  A = c(1, 2, 3, 4, 5, 6),         # our query gene A
+  B = c(10, 11, 12, 13, 14, 15),   # perfectly correlated with A
+  C = c(5, 6, 7, 5, 9, 10),        # well correlated, but the 4th value (5) is a minor outlier
+  D = c(9, 5, 12, 10, 7, 9),       # not correlated with A at all
+  E = c(10, 11, 12, 0, 14, 15)     # like B, but the 4th value (0) is a major outlier
+)
 
-df = pd.DataFrame({
-    "A": [1, 2, 3, 4, 5, 6],        # our query gene A
-    "B": [10, 11, 12, 13, 14, 15],  # perfectly correlated with A
-    "C": [5, 6, 7, 5, 9, 10],       # well correlated, but the 4th value (5) is a minor outlier
-    "D": [9, 5, 12, 10, 7, 9],      # not correlated with A at all
-    "E": [10, 11, 12, 0, 14, 15]    # like B, but the 4th value (0) is a major outlier
-})
-
-for g in ["B", "C", "D", "E"]:
-    r, p = pearsonr(df["A"], df[g])   # PCC of A vs. the other gene, and its p-value
-    print(f"A ↔ {g}:  r = {r: .3f}   (p = {p:.2e})")
+for (g in c("B", "C", "D", "E")) {
+  test <- cor.test(toy$A, toy[[g]])   # PCC of A vs. the other gene, and its p-value
+  cat(sprintf("A <-> %s:  r = %6.3f   (p = %.2e)\n", g, test$estimate, test$p.value))
+}
 ```
 
 A and B are perfectly correlated: *r* = 1, and the p-value (the probability of seeing
 such a correlation by chance) is 0. Plot A against each gene, with a regression line,
 to see how the points produce the PCC:
 
-```python
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-genes = ["B", "C", "D", "E"]
-fig, axs = plt.subplots(1, 4, figsize=(18, 4), sharex=True, sharey=True)
-for ax, g in zip(axs, genes):
-    sns.regplot(x="A", y=g, data=df, scatter_kws={"s": 80, "alpha": 0.8},
-                line_kws={"color": "red"}, ci=None, ax=ax)
-    r, _ = pearsonr(df["A"], df[g])
-    ax.set_title(f"A ↔ {g}\nPCC = {r:.2f}")
-    ax.set_xlabel("Gene A")
-    ax.set_ylabel(f"Gene {g}")
-plt.tight_layout()
-plt.show()
+```r
+par(mfrow = c(1, 4), mar = c(4, 4, 3, 1))   # four plots side by side
+for (g in c("B", "C", "D", "E")) {
+  plot(toy$A, toy[[g]], pch = 19, cex = 1.5, xlab = "Gene A", ylab = paste("Gene", g),
+       main = sprintf("A <-> %s\nPCC = %.2f", g, cor(toy$A, toy[[g]])))
+  abline(lm(toy[[g]] ~ toy$A), col = "red")   # the regression line
+}
+par(mfrow = c(1, 1))
 ```
 
 *Your turn:* what can you say about genes C, D and E and their relationship to A? Are
@@ -965,8 +951,8 @@ outliers a serious problem? How could you deal with them?
 So yes, outliers are a serious problem for PCC: one bad sample can hide a real
 relationship (E) or create a fake one. Remedies: remove the offending sample (after
 EDA has identified it, as in Session 2), log-transform the data to shrink extreme
-values, or use a rank-based correlation (Spearman) that is less sensitive to single
-values.
+values, or use a rank-based correlation (Spearman: `cor(..., method = "spearman")`)
+that is less sensitive to single values.
 :::
 
 ## 3.2 The expression matrix, annotated with gene functions
@@ -976,87 +962,73 @@ atlas again — this time with a **description** for every gene, from TAIR.
 
 ::: {.run-local}
 This is the **setup block** for Session 3. Run it even if you still have Session 2's
-variables — it builds a different table (`df_unique`).
+variables — it builds a different matrix (`expr_unique`). The TAIR file (25 MB) comes
+from a slow server: the first download can take a couple of minutes.
 :::
 
-```python
-# Expression data, sample annotation, and TAIR gene descriptions
-!wget -q -O E-MTAB-7978-transcripts-tpms.tsv https://ftp.ebi.ac.uk/pub/databases/microarray/data/atlas/experiments/E-MTAB-7978/E-MTAB-7978-transcripts-tpms.tsv
-!wget -q -O E-MTAB-7978.sdrf.txt https://ftp.ebi.ac.uk/pub/databases/microarray/data/atlas/experiments/E-MTAB-7978/E-MTAB-7978.sdrf.txt
-!wget -q -O TAIR10_functional_descriptions.txt "https://www.arabidopsis.org/api/download-files/download?filePath=Genes/TAIR10_genome_release/TAIR10_functional_descriptions"
+```r
+setwd("~/work/module4")
+options(timeout = 600)
 
-import pandas as pd
+atlas <- "https://ftp.ebi.ac.uk/pub/databases/microarray/data/atlas/experiments/E-MTAB-7978/"
+if (!file.exists("E-MTAB-7978-transcripts-tpms.tsv"))
+  download.file(paste0(atlas, "E-MTAB-7978-transcripts-tpms.tsv"), "E-MTAB-7978-transcripts-tpms.tsv")
+if (!file.exists("E-MTAB-7978.sdrf.txt"))
+  download.file(paste0(atlas, "E-MTAB-7978.sdrf.txt"), "E-MTAB-7978.sdrf.txt")
+if (!file.exists("TAIR10_functional_descriptions.txt"))
+  download.file("https://www.arabidopsis.org/api/download-files/download?filePath=Genes/TAIR10_genome_release/TAIR10_functional_descriptions",
+                "TAIR10_functional_descriptions.txt")
 
-# 1. Sample metadata (SDRF file)
-meta = pd.read_csv("E-MTAB-7978.sdrf.txt", sep="\t")
+# 1. TAIR descriptions: remove the transcript suffix (.1, .2 ...) and keep one per gene
+tair <- read.delim("TAIR10_functional_descriptions.txt", quote = "", colClasses = "character")
+tair$gene <- sub("\\.[0-9]+$", "", tair$Model_name)
+tair <- tair[!duplicated(tair$gene), c("gene", "Short_description")]
 
-# 2. TAIR descriptions; remove the transcript suffix (.1, .2 ...) to get gene IDs
-tair = pd.read_csv("TAIR10_functional_descriptions.txt", sep="\t", dtype=str)
-tair["GeneID_clean"] = tair["Model_name"].str.replace(r"\.\d+$", "", regex=True)
-tair = tair[["GeneID_clean", "Short_description"]].drop_duplicates(subset=["GeneID_clean"])
+# 2. The expression matrix, with organ names as column names (as in Session 2)
+tpm <- read.delim("E-MTAB-7978-transcripts-tpms.tsv", check.names = FALSE)
+tpm <- tpm[endsWith(tpm$GeneID, ".1"), ]
+meta <- read.delim("E-MTAB-7978.sdrf.txt", check.names = FALSE)
+run_to_organ <- unique(meta[, c("Comment[ENA_RUN]", "Characteristics[organism part]")])
+sample_cols <- grep("^ERR", colnames(tpm), value = TRUE)
+expr <- as.matrix(tpm[, sample_cols])
+rownames(expr) <- tpm[["Gene ID"]]
+expr[is.na(expr)] <- 0
+colnames(expr) <- run_to_organ[["Characteristics[organism part]"]][
+  match(sample_cols, run_to_organ[["Comment[ENA_RUN]"]])]
 
-# 3. Expression matrix: primary transcripts only, plus a gene ID without suffix
-df = pd.read_csv("E-MTAB-7978-transcripts-tpms.tsv", sep="\t")
-df = df[df["GeneID"].str.endswith(".1")].copy()
-df["GeneID_clean"] = df["GeneID"].str.replace(r"\.\d+$", "", regex=True)
+# 3. Keep ONE sample per organ (the first replicate): 23 organs instead of 56 samples
+expr_unique <- expr[, !duplicated(colnames(expr))]
 
-# 4. Map run IDs to organ names
-sample_to_organ_dict = (meta[["Comment[ENA_RUN]", "Characteristics[organism part]"]]
-                        .drop_duplicates()
-                        .set_index("Comment[ENA_RUN]")["Characteristics[organism part]"]
-                        .to_dict())
+# 4. The TAIR description of every gene, in the same order as the matrix rows
+description <- tair$Short_description[match(rownames(expr_unique), tair$gene)]
 
-# 5. Rename the sample columns to organ names; missing values become 0
-df_renamed = df.copy().fillna(0)
-df_renamed.rename(columns=sample_to_organ_dict, inplace=True)
-
-# 6. Keep ONE sample per organ (the first replicate): 23 organs instead of 56 samples
-df_unique = df_renamed.loc[:, ~df_renamed.columns.duplicated()]
-
-# 7. Add the TAIR description of each gene
-df_unique = df_unique.merge(tair, on="GeneID_clean", how="left")
-df_unique = df_unique.drop(columns=["Gene Name", "GeneID", "GeneID_clean"], errors="ignore")
-
-# 8. Save the final matrix
-df_unique.to_csv("matrix_unique.txt", sep="\t", index=False)
-df_unique
+dim(expr_unique)
+head(data.frame(gene = rownames(expr_unique), description))
 ```
 
-`df_unique` has one row per gene: its ID, its expression in 23 organs, and its
-description.
+`expr_unique` has one row per gene and one column per organ; `description` holds the
+gene descriptions in the same order.
 
 ## 3.3 Co-expression of a photosynthesis gene
 
 Let's compute the correlation between one gene and **every** other gene in the matrix.
 Our query is **PsaK** (AT1G30380, [UniProt](https://www.uniprot.org/uniprotkb/Q9SUI5/entry)),
-a subunit of photosystem I. The code finds the gene, computes its PCC with all genes,
-and prints the 100 most correlated:
+a subunit of photosystem I. The code takes the gene's expression profile, computes its
+PCC with all genes, and prints the 100 most correlated:
 
-```python
-import warnings
-import pandas as pd
+```r
+target_gene <- "AT1G30380"   # replace with your gene of interest
 
-gene_col = "Gene ID"
-desc_col = "Short_description"
-target_gene = "AT1G30380"   # replace with your gene of interest
+# PCC of every gene (row) with the target. Genes that never change give NA,
+# with a warning that we silence.
+pcc <- suppressWarnings(cor(t(expr_unique), expr_unique[target_gene, ]))[, 1]
 
-# The expression columns are all columns except the ID and the description
-expr_cols = [c for c in df_unique.columns if c not in {gene_col, desc_col}]
-
-# Expression vector of the target gene
-target_expr = df_unique.loc[df_unique[gene_col] == target_gene, expr_cols].iloc[0].astype(float)
-
-# PCC of every gene with the target (warnings come from genes with no variation)
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", RuntimeWarning)
-    pcc = df_unique[expr_cols].astype(float).apply(lambda row: row.corr(target_expr), axis=1)
-
-result_df = pd.DataFrame({gene_col: df_unique[gene_col], desc_col: df_unique[desc_col], "PCC": pcc})
+result <- data.frame(gene = rownames(expr_unique), description = description,
+                     PCC = round(pcc, 6))
 
 # Sort by PCC and keep the top 100
-result_df = result_df.sort_values("PCC", ascending=False).head(100)
-result_df["PCC"] = result_df["PCC"].map(lambda x: f"{x:.6f}")
-print(result_df.to_string(index=False))
+result <- result[order(result$PCC, decreasing = TRUE), ]
+print(head(result, 100), row.names = FALSE)
 ```
 
 *Your turn:* does the function of the top genes correspond to photosynthesis? Are
@@ -1067,11 +1039,11 @@ Yes — the method works very well. The list is dominated by photosynthesis: pho
 and II subunits (PsaE, PsaH, PsaF, PsaD, PsaO, PSII subunit P …), light-harvesting
 complex proteins and a chloroplast ATP-synthase subunit, all with PCC > 0.97.
 
-Some genes have no known function (e.g. **AT4G01150**, PCC 0.99, description `NaN`).
-Because they are so tightly co-expressed with photosynthesis genes, it is very likely
-that they also work in photosynthesis — this is how co-expression **predicts the
-function of uncharacterised genes** (*guilt by association*). Remember it is a
-hypothesis: co-expression is correlation, not proof.
+Some genes have no known function (e.g. **AT4G01150**, PCC 0.99, no description). Because
+they are so tightly co-expressed with photosynthesis genes, it is very likely that they
+also work in photosynthesis — this is how co-expression **predicts the function of
+uncharacterised genes** (*guilt by association*). Remember it is a hypothesis:
+co-expression is correlation, not proof.
 :::
 
 *Your turn:* run the same code for **AT1G14320** and **AT5G22880**. What are their
@@ -1142,7 +1114,8 @@ Go to [uniprot.org](https://www.uniprot.org/) and search for **APETALA3** or
 The EBI Expression Atlas holds curated bulk RNA-seq datasets — both *baseline*
 experiments (in which tissues is a gene expressed?) and *differential* experiments (how
 does expression change between conditions?). It is a good starting point for
-tissue-level patterns. (You can also reach it from a gene's UniProt page.)
+tissue-level patterns. (You can also reach it from a gene's UniProt page — and it is
+where the matrix of Sessions 2–3 came from.)
 
 ::: {.web}
 Go to [ebi.ac.uk/gxa](https://www.ebi.ac.uk/gxa/home), search for **AT3G54340** and
@@ -1247,75 +1220,70 @@ and **regulation**.
 ::: {.run-local}
 **Install Cytoscape before class** on your own computer:
 [cytoscape.org/download.html](https://cytoscape.org/download.html) (free; Windows, macOS
-and Linux). Start a fresh Colab notebook for today.
+and Linux). The R part runs on ERDA as before; you move the network file from ERDA to
+your computer in §5.3.
 :::
 
-## 5.1 Setup: load and preprocess the atlas
+## 5.1 Setup: load and log-transform the atlas
 
-This block downloads the atlas and TAIR descriptions, builds gene labels of the form
-**`AGI_name`** (e.g. `AT5G17420_CESA7`; `_nan` means the gene has no short name), and
-log-transforms and standardises every gene.
+This block (re)loads the atlas and the TAIR descriptions — both already in your
+`module4` folder from Session 3 — and labels every gene **`AGI_name`** (e.g.
+`AT5G17420_CESA7`; `_nan` means the gene has no short name). This time we keep **all 56
+samples** and log-transform the values.
 
-```python
-import numpy as np
-import pandas as pd
-from sklearn.preprocessing import StandardScaler
+```r
+setwd("~/work/module4")
+options(timeout = 600)
 
-# Expression data and TAIR gene descriptions
-!wget -q -O E-MTAB-7978-transcripts-tpms.tsv https://ftp.ebi.ac.uk/pub/databases/microarray/data/atlas/experiments/E-MTAB-7978/E-MTAB-7978-transcripts-tpms.tsv
-!wget -q -O TAIR10_functional_descriptions.txt "https://www.arabidopsis.org/api/download-files/download?filePath=Genes/TAIR10_genome_release/TAIR10_functional_descriptions"
+atlas <- "https://ftp.ebi.ac.uk/pub/databases/microarray/data/atlas/experiments/E-MTAB-7978/"
+if (!file.exists("E-MTAB-7978-transcripts-tpms.tsv"))
+  download.file(paste0(atlas, "E-MTAB-7978-transcripts-tpms.tsv"), "E-MTAB-7978-transcripts-tpms.tsv")
+if (!file.exists("TAIR10_functional_descriptions.txt"))
+  download.file("https://www.arabidopsis.org/api/download-files/download?filePath=Genes/TAIR10_genome_release/TAIR10_functional_descriptions",
+                "TAIR10_functional_descriptions.txt")
 
-# TAIR descriptions, with the transcript suffix (.1, .2 ...) removed
-tair = pd.read_csv("TAIR10_functional_descriptions.txt", sep="\t", dtype=str)
-tair["Gene ID"] = tair["Model_name"].str.replace(r"\.\d+$", "", regex=True)
-tair = tair[["Gene ID", "Short_description"]].drop_duplicates(subset=["Gene ID"])
+# TAIR descriptions, one per gene
+tair <- read.delim("TAIR10_functional_descriptions.txt", quote = "", colClasses = "character")
+tair$gene <- sub("\\.[0-9]+$", "", tair$Model_name)
+tair <- tair[!duplicated(tair$gene), c("gene", "Short_description")]
 
-# Expression matrix: one row per gene (primary transcript), plus its description
-df = pd.read_csv("E-MTAB-7978-transcripts-tpms.tsv", sep="\t")
-df = df[df["GeneID"].str.endswith(".1")].copy()
-df = df.merge(tair, on="Gene ID", how="left")
+# The TPM table, primary transcripts only
+tpm <- read.delim("E-MTAB-7978-transcripts-tpms.tsv", check.names = FALSE)
+tpm <- tpm[endsWith(tpm$GeneID, ".1"), ]
 
-# Gene label AGI_name, and a lookup table AGI -> label (used in Session 6)
-df["Gene_fused"] = df["Gene ID"].astype(str) + "_" + df["Gene Name"].astype(str)
-agi2geneName = {k.upper(): v for k, v in zip(df["Gene ID"], df["Gene_fused"])}
+# Gene labels AGI_name, and a lookup table AGI -> label (used again in the mini-project)
+gene_name <- tpm[["Gene Name"]]
+gene_name[is.na(gene_name) | gene_name == ""] <- "nan"
+gene_label <- paste(tpm[["Gene ID"]], gene_name, sep = "_")
+agi2label <- setNames(gene_label, toupper(tpm[["Gene ID"]]))
 
-# Keep the label, the description and the 56 sample columns
-df = df.drop(columns=["Gene ID", "Gene Name", "GeneID"], errors="ignore")
-df = df[["Gene_fused"] + [c for c in df.columns if c != "Gene_fused"]]
-expr_cols = df.select_dtypes(include=[np.number]).columns
+# Expression matrix (56 samples), log2(TPM + 1), with the labels as row names
+expr <- as.matrix(tpm[, grep("^ERR", colnames(tpm))])
+expr[is.na(expr)] <- 0
+rownames(expr) <- gene_label
+expr_log <- log2(expr + 1)
 
-# log2(TPM + 1), then standardise each gene (row) to mean 0 and variance 1
-expr_log = np.log2(df[expr_cols] + 1)
-expr_scaled = StandardScaler().fit_transform(expr_log.T).T
+# The description of every gene, looked up by label
+description <- setNames(tair$Short_description[match(tpm[["Gene ID"]], tair$gene)], gene_label)
 
-df_unique = df.copy()
-df_unique[expr_cols] = expr_scaled
-print(df_unique.shape)
+dim(expr_log)
 ```
 
 ## 5.2 The top 100 genes co-expressed with CESA7
 
-The same code as in Session 3 (§3.3), now with CESA7 as the query:
+The same calculation as in Session 3 (§3.3), now with CESA7 as the query:
 
-```python
-import warnings
-
-gene_col = "Gene_fused"
-desc_col = "Short_description"
-target_gene = "AT5G17420"   # your gene of interest; here CESA7
-
-# Find the target by the AGI part of its label (before the "_")
-mask = df_unique[gene_col].str.split("_").str[0] == target_gene
-target_expr = df_unique.loc[mask, expr_cols].iloc[0].astype(float)
+```r
+target_gene <- "AT5G17420"            # your gene of interest; here CESA7
+target_label <- agi2label[target_gene]
 
 # PCC of every gene with the target
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", RuntimeWarning)
-    pcc = df_unique[expr_cols].astype(float).apply(lambda row: row.corr(target_expr), axis=1)
+pcc <- suppressWarnings(cor(t(expr_log), expr_log[target_label, ]))[, 1]
 
-result_df = pd.DataFrame({gene_col: df_unique[gene_col], desc_col: df_unique[desc_col], "PCC": pcc})
-result_df = result_df.sort_values("PCC", ascending=False).head(100)
-print(result_df.to_string(index=False))
+result <- data.frame(gene = names(pcc), description = description[names(pcc)],
+                     PCC = round(pcc, 6), row.names = NULL)
+result <- head(result[order(result$PCC, decreasing = TRUE), ], 100)
+print(result, row.names = FALSE)
 ```
 
 *Your turn:* what do you see in this list? Are the PCC values high, and is there an
@@ -1341,45 +1309,33 @@ the cellulose machinery makes them candidates for new secondary-wall genes.
 Now take these 100 genes and build a co-expression network: compute the PCC between
 **every pair** of genes and keep only the pairs (edges) with **PCC > 0.9**.
 
-```python
-from itertools import combinations
+```r
+top_genes <- result$gene
 
-# 1. The 100 genes
-genes = result_df[gene_col].astype(str).tolist()
+# PCC between every pair of the 100 genes: a 100 x 100 matrix
+C <- cor(t(expr_log[top_genes, ]))
 
-# 2. Their expression profiles, in the same order
-sub = (df_unique[df_unique[gene_col].astype(str).isin(genes)]
-       .drop_duplicates(subset=[gene_col])
-       .set_index(gene_col)[expr_cols]
-       .astype(float))
-sub = sub.loc[[g for g in genes if g in sub.index]]
+# Edge list: every pair with PCC > 0.9. upper.tri() takes each pair once and skips
+# the diagonal (a gene with itself).
+pairs <- which(C > 0.9 & upper.tri(C), arr.ind = TRUE)
+edges <- data.frame(gene_A = rownames(C)[pairs[, 1]],
+                    gene_B = colnames(C)[pairs[, 2]],
+                    PCC    = round(C[pairs], 6))
+edges <- edges[order(edges$PCC, decreasing = TRUE), ]
 
-# 3. PCC between every pair of these genes
-C = np.corrcoef(sub.values)
-
-# 4. Edge list: every pair with PCC > 0.9 (no self-pairs)
-idx = sub.index.to_numpy()
-rows = []
-for i, j in combinations(range(len(idx)), 2):
-    p = float(C[i, j])
-    if p > 0.9:
-        rows.append((idx[i], idx[j], p))
-edges_df = pd.DataFrame(rows, columns=["gene_A", "gene_B", "PCC"]).sort_values("PCC", ascending=False)
-
-# 5. Save it
-out_path = f"for_cytoscape_{target_gene}.tsv"
-edges_df.to_csv(out_path, sep="\t", index=False)
-print(f"Saved {len(edges_df)} edges (PCC > 0.9) among {len(idx)} genes to {out_path}")
+# Save it
+out_file <- paste0("for_cytoscape_", target_gene, ".tsv")
+write.table(edges, out_file, sep = "\t", quote = FALSE, row.names = FALSE)
+cat("Saved", nrow(edges), "edges (PCC > 0.9) among", length(top_genes), "genes to", out_file, "\n")
 ```
 
-You should get **195 edges**. Download the network file to your computer from the Files
-panel (⋮ next to the file → **Download**):
-
-![Downloading a file from Colab](assets/colab-download-file.png){.shot width=35%}
+You should get **195 edges**. Copy the file to your own computer: in RStudio's
+**Files** pane, go to `~/work/module4`, tick `for_cytoscape_AT5G17420.tsv`, then click
+the gear icon (**More**) → **Export…** → **Download**.
 
 ## 5.4 Visualise the network in Cytoscape
 
-::: {.terminal}
+::: {.cytoscape}
 1. Open the downloaded `for_cytoscape_AT5G17420.tsv` in a text editor first. What is in
    the file, and is it human-readable?
 2. Start Cytoscape and import the network: **File → Import → Network from File…**,
@@ -1407,7 +1363,7 @@ important gene families:
 2. MYB transcription factors;
 3. NAC transcription factors.
 
-::: {.terminal}
+::: {.cytoscape}
 1. Select the nodes of one family with the search box at the top right, e.g.
    `name:*cesa*` (then `name:*myb*`, `name:*nac*`).
 2. Colour the selected nodes' labels with **Style → Label Color → Bypass**, choosing a
@@ -1418,9 +1374,9 @@ important gene families:
 
 *Your turn:* is it easy to tell the four categories (CESA, MYB, NAC, all others) apart?
 If not, change the colours so they are easy to distinguish but still pleasant to look
-at — for inspiration see the [seaborn palettes](https://seaborn.pydata.org/tutorial/color_palettes.html).
-Make the categories even easier to tell apart by giving each one a different
-**shape**: repeat the selection and set a shape bypass for each category.
+at — for inspiration see the [ColorBrewer palettes](https://colorbrewer2.org/). Make the
+categories even easier to tell apart by giving each one a different **shape**: repeat
+the selection and set a shape bypass for each category.
 
 ![Giving each category its own node shape](assets/cytoscape-node-shapes.png){.shot width=40%}
 
@@ -1429,7 +1385,7 @@ Make the categories even easier to tell apart by giving each one a different
 Cytoscape's layout algorithms decide how the network is arranged on screen. Each one
 emphasises different structure — clusters, hubs or linear relationships.
 
-::: {.terminal}
+::: {.cytoscape}
 Try at least three layouts from the **Layout** menu:
 
 - force-directed (e.g. **Prefuse Force Directed** or **Edge-weighted Spring Embedded**);
@@ -1479,7 +1435,7 @@ Table**. Analyse it as an **undirected** network (co-expression has no direction
 
 ![Network Analyzer results in the Node Table](assets/cytoscape-network-analyzer.png){.shot}
 
-::: {.terminal}
+::: {.cytoscape}
 1. Colour the nodes by degree: **Style → Fill Color → Column: Degree**, **Mapping
    Type: Continuous Mapping**.
 2. Under **Border Paint**, map the column **ClusteringCoefficient**, also with a
@@ -1532,37 +1488,40 @@ interactions for all organisms. We extract every interaction **between two of th
 100 CESA7-co-expressed genes**.
 
 ::: {.run-local}
-If your Colab session has reset since Session 5, first rerun **§5.1** (setup) and
-**§5.2** (top 100 genes) — this block needs `result_df` and `agi2geneName`.
+If you have had a break since Session 5, first rerun **§5.1** (setup) and **§5.2**
+(top 100 genes) — this block needs `result` and `agi2label`. The BioGRID download is
+69 MB.
 :::
 
-```python
-# Download BioGRID and unpack only the Arabidopsis file
-!wget -q -O BIOGRID-ORGANISM.zip https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive/BIOGRID-5.0.250/BIOGRID-ORGANISM-5.0.250.tab.zip
-!unzip -o -j BIOGRID-ORGANISM.zip "*Arabidopsis_thaliana_Columbia*"
-ppi_file = "BIOGRID-ORGANISM-Arabidopsis_thaliana_Columbia-5.0.250.tab.txt"
+```r
+setwd("~/work/module4")
+options(timeout = 600)
+
+# Download BioGRID once, and unpack only the Arabidopsis file
+biogrid_zip <- "BIOGRID-ORGANISM-5.0.250.tab.zip"
+if (!file.exists(biogrid_zip))
+  download.file("https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive/BIOGRID-5.0.250/BIOGRID-ORGANISM-5.0.250.tab.zip",
+                biogrid_zip, mode = "wb")
+ppi_file <- "BIOGRID-ORGANISM-Arabidopsis_thaliana_Columbia-5.0.250.tab.txt"
+unzip(biogrid_zip, files = ppi_file)
 
 # The file starts with licence text; find the line where the table begins
-with open(ppi_file) as fh:
-    skip = next(i for i, line in enumerate(fh) if line.startswith("INTERACTOR_A"))
-biogrid = pd.read_csv(ppi_file, sep="\t", skiprows=skip, dtype=str)
+skip <- grep("^INTERACTOR_A", readLines(ppi_file, n = 200))[1] - 1
+biogrid <- read.delim(ppi_file, skip = skip, quote = "", colClasses = "character")
 
 # Keep interactions where BOTH proteins are among the top 100 co-expressed genes
-allGenes = {g.split("_")[0].upper() for g in result_df[gene_col]}
-a = biogrid["INTERACTOR_A"].str.upper()
-b = biogrid["INTERACTOR_B"].str.upper()
-hits = biogrid[a.isin(allGenes) & b.isin(allGenes)]
+top_agi <- toupper(sub("_.*", "", result$gene))
+hits <- biogrid[toupper(biogrid$INTERACTOR_A) %in% top_agi &
+                toupper(biogrid$INTERACTOR_B) %in% top_agi, ]
 
 # Label the proteins as in the co-expression network, and keep the experiment type
-ppi_df = pd.DataFrame({
-    "gene_A": [agi2geneName[x.upper()] for x in hits["INTERACTOR_A"]],
-    "gene_B": [agi2geneName[x.upper()] for x in hits["INTERACTOR_B"]],
-    "experiment": hits["EXPERIMENTAL_SYSTEM"].values
-}).drop_duplicates()
+ppi <- unique(data.frame(gene_A     = agi2label[toupper(hits$INTERACTOR_A)],
+                         gene_B     = agi2label[toupper(hits$INTERACTOR_B)],
+                         experiment = hits$EXPERIMENTAL_SYSTEM, row.names = NULL))
 
-ppi_df.to_csv("PPI.txt", sep="\t", index=False)
-print(len(ppi_df), "protein-protein interactions")
-print(ppi_df.to_string(index=False))
+write.table(ppi, "PPI.txt", sep = "\t", quote = FALSE, row.names = FALSE)
+cat(nrow(ppi), "protein-protein interactions\n")
+print(ppi, row.names = FALSE)
 ```
 
 *Your turn:* which proteins interact? Which kinds of experiment support the
@@ -1599,8 +1558,8 @@ such relationships into a table, a so-called **knowledge graph**.
 > transcription factors that control them. Give me a tab-delimited file with the
 > header TF, target, relationship.
 
-3. Save the answer as a text file called **`GRN.txt`** and upload it to Colab (drag it
-   into the Files panel).
+3. Save the answer as a text file called **`GRN.txt`** and upload it to ERDA: in
+   RStudio's **Files** pane, go to `~/work/module4` and click **Upload**.
 4. **Check it.** LLMs make mistakes: spot-check a few edges against the review. Are the
    AGI codes real? Does the paper actually say what the table says?
 :::
@@ -1615,52 +1574,52 @@ edge table** with a column `edge_type` that says which layer each edge comes fro
 in `GRN.txt` are matched by their AGI code, so it does not matter if the AI model named
 them slightly differently.
 
-```python
-import re
+```r
+setwd("~/work/module4")
 
-agi = re.compile(r"AT[1-5CM]G\d{5}", re.IGNORECASE)
-
-def to_node(name):
-    """Turn any gene name that contains an AGI code into the AGI_name label."""
-    m = agi.search(str(name))
-    if m:
-        return agi2geneName.get(m.group(0).upper(), m.group(0).upper())
-    print("No AGI code found, kept as is:", name)
-    return str(name).strip()
+# Turn any gene name that contains an AGI code into the AGI_name label
+to_node <- function(names) {
+  has_agi <- grepl("AT[1-5CM]G[0-9]{5}", names, ignore.case = TRUE)
+  agi <- toupper(sub(".*?(AT[1-5CM]G[0-9]{5}).*", "\\1", names, ignore.case = TRUE, perl = TRUE))
+  label <- ifelse(agi %in% names(agi2label), agi2label[agi], agi)
+  if (any(!has_agi)) cat("No AGI code found, kept as is:", names[!has_agi], "\n")
+  unname(ifelse(has_agi, label, trimws(names)))
+}
 
 # Layer 1: co-expression (Session 5)
-coexp = pd.read_csv(f"for_cytoscape_{target_gene}.tsv", sep="\t")
-coexp = pd.DataFrame({"source": coexp["gene_A"], "target": coexp["gene_B"],
-                      "edge_type": "coexpression", "evidence": coexp["PCC"].round(3).astype(str)})
+coexp <- read.delim(paste0("for_cytoscape_", target_gene, ".tsv"))
+coexp <- data.frame(source = coexp$gene_A, target = coexp$gene_B,
+                    edge_type = "coexpression", evidence = as.character(round(coexp$PCC, 3)))
 
 # Layer 2: protein-protein interactions (§6.2)
-ppi = pd.read_csv("PPI.txt", sep="\t")
-ppi = pd.DataFrame({"source": ppi["gene_A"], "target": ppi["gene_B"],
-                    "edge_type": "PPI", "evidence": ppi["experiment"]})
+ppi_edges <- read.delim("PPI.txt")
+ppi_edges <- data.frame(source = ppi_edges$gene_A, target = ppi_edges$gene_B,
+                        edge_type = "PPI", evidence = ppi_edges$experiment)
 
 # Layer 3: gene regulation from the literature (§6.3)
-grn = pd.read_csv("GRN.txt", sep="\t")
-grn = pd.DataFrame({"source": grn.iloc[:, 0].map(to_node), "target": grn.iloc[:, 1].map(to_node),
-                    "edge_type": "regulation", "evidence": grn.iloc[:, 2]})
+grn <- read.delim("GRN.txt", colClasses = "character")
+grn <- data.frame(source = to_node(grn[[1]]), target = to_node(grn[[2]]),
+                  edge_type = "regulation", evidence = grn[[3]])
 
-network = pd.concat([coexp, ppi, grn], ignore_index=True)
-network.to_csv(f"multiomics_network_{target_gene}.tsv", sep="\t", index=False)
-print(network["edge_type"].value_counts())
+network <- rbind(coexp, ppi_edges, grn)
+write.table(network, paste0("multiomics_network_", target_gene, ".tsv"),
+            sep = "\t", quote = FALSE, row.names = FALSE)
+table(network$edge_type)
 ```
 
-Download `multiomics_network_AT5G17420.tsv` to your computer.
+Download `multiomics_network_AT5G17420.tsv` to your computer as in §5.3.
 
 ::: {.callout-note collapse="true" title="No GRN.txt yet? Build the network without it"}
-Replace the "Layer 3" lines and the `concat` line with:
+Skip the "Layer 3" lines and replace the `rbind` line with:
 
-```python
-network = pd.concat([coexp, ppi], ignore_index=True)
+```r
+network <- rbind(coexp, ppi_edges)
 ```
 :::
 
 ## 6.5 Style and analyse the multi-omic network
 
-::: {.terminal}
+::: {.cytoscape}
 1. **Import** the file as in §5.4 (*File → Import → Network from File…*). In the import
    preview, click the `edge_type` column header and set it as the **Interaction Type**
    (the icon with an arrow between two dots).
@@ -1767,32 +1726,122 @@ afternoon. Cover:
 
 ---
 
-# Appendix — Working in Colab {#sec-colab}
+# Appendix — Connecting to RStudio on ERDA {#sec-erda}
 
-**Getting started.** Colab is free with any Google account. *File → New notebook*
-starts a notebook; *File → Download → .ipynb* saves it to your computer, and *File →
-Save a copy in Drive* keeps it in your Google Drive.
+Everything in this module runs in RStudio on ERDA. This is how you get there.
+**Do the sign-up before the first class** — it is not instant.
 
-**Files.** Downloaded and created files live in `/content`, shown in the **Files**
-panel (folder icon, left). They disappear when the session ends — download anything
-you want to keep (⋮ next to a file → **Download**). To upload a file, drag it into the
-Files panel.
+## 1. Get an ERDA account
 
-**Restarting.** *Runtime → Restart session* clears all variables but keeps the files;
-*Runtime → Disconnect and delete runtime* clears both. After either, rerun the session's
-setup block.
+ERDA is the University of Copenhagen's *Electronic Research Data Archive*. Go to
+[erda.dk](https://erda.dk) and choose **"Sign up to ERDA using your KU / UCPH
+account"**, then log in with your usual KU credentials. ERDA supports two-factor
+authentication, so have your phone to hand.
 
-**Common errors.**
+You only need a web browser. Nothing is installed on your own machine.
 
-| Error | What it means | Fix |
+## 2. Start an RStudio session
+
+1. On the ERDA home page, click the **Jupyter** app (also in the left icon bar).
+2. Under **Select a Jupyter Service**, stay on the **DAG** tab (*Data Analysis
+   Gateway* — the interactive service; MODI is for batch HPC jobs) and press
+   **Start DAG**.
+3. You land on **JupyterHub**. Press **Start My Server**.
+4. Under **Server Options → Select a notebook image**, choose the image announced on
+   Absalon — **any image that offers RStudio works**, because this module needs base R
+   only, with no extra packages.
+5. When the launcher opens, click **RStudio** (under *Notebook*). The same launcher
+   also offers a **Terminal** under *Other*.
+
+You now have RStudio running in your browser on a KU machine. Worth knowing about
+DAG sessions: you get **8 cores and 16 GB of memory**, a session is **terminated
+after 2 hours of inactivity**, and the machine itself is **non-persistent** — see
+the next point.
+
+## 3. The `module4` folder — and why only `~/work` is safe
+
+Your ERDA files appear inside every session at `~/work` (in full:
+`/home/jovyan/work/`). **Everything in this module lives in one folder inside it**,
+`~/work/module4`, which you make in [Session 1](#sec-o1). Every code block on this page
+reads and writes there.
+
+::: {.provenance}
+**Only `~/work` survives.** In ERDA's own words, spawned instances are
+non-persistent: *any change made during a session is lost once the server is
+terminated — the only exception is data saved in the provided mount directory
+(`~/work`)*. And sessions do terminate: after 2 hours of inactivity, automatically.
+Save everything under `~/work/module4` and it is there next session — but R's variables
+are not, so rerun the session's setup block.
+:::
+
+## 4. The files
+
+You do not upload any data: every dataset is downloaded straight into
+`~/work/module4` by the code. The only file you upload yourself is `GRN.txt` in
+[§6.3](#sec-grn). When the module is done, the folder looks like this:
+
+```
+~/work/module4/
+    bin/kallisto                            the installed program (Session 1)
+    TAIR10_cds.fa  TAIR10_index.idx         reference sequences + kallisto index (Session 1)
+    reads/                                  raw reads, 2.3 GB — delete after Session 1
+    results/                                kallisto output (Session 1)
+    E-MTAB-7978-transcripts-tpms.tsv        the expression atlas (Sessions 2-6)
+    E-MTAB-7978.sdrf.txt                    its sample annotation (Sessions 2-3)
+    TAIR10_functional_descriptions.txt      gene descriptions (Sessions 3-6)
+    for_cytoscape_AT5G17420.tsv             co-expression network (Session 5)
+    BIOGRID-ORGANISM-5.0.250.tab.zip        BioGRID, and the Arabidopsis file from it (mini-project)
+    PPI.txt  GRN.txt                        PPI and regulatory layers (mini-project)
+    multiomics_network_AT5G17420.tsv        the combined network (mini-project)
+```
+
+**Moving files to your own computer** (for Cytoscape): RStudio **Files** pane → tick the
+file → gear icon (**More**) → **Export…**. **Moving files to ERDA**: Files pane →
+**Upload**. You can also use the ERDA file manager in the browser.
+
+## 5. Console or Terminal?
+
+| You want to … | Use | How to recognise it on this page |
 |:--|:--|:--|
-| `NameError: name '…' is not defined` | a variable from an earlier block does not exist (session reset, or a block was skipped) | rerun the session's setup block, then the blocks above the one that failed |
-| `FileNotFoundError` / `No such file or directory` | the file was never downloaded in this session, or has a different name | rerun the `!wget` line; check the name in the Files panel |
-| `IndexError: single positional indexer is out-of-bounds` after setting `target_gene` | the gene ID is not in the matrix | check the AGI code (e.g. `AT5G17420`, capital letters) |
-| `kallisto: command not found` | kallisto is not installed in this session | rerun §1.4 |
+| run R code | **Console** tab (or a script) | plain code block |
+| run kallisto, `curl`, `ls`, `cat` … | **Terminal** tab, right of Console | block in a **TERMINAL** box |
 
-**Privacy.** Colab runs on Google's servers. The data in this module are all public; do
-not upload personal or unpublished data.
+Pasting shell commands into the R console (or R code into the Terminal) gives errors
+such as `Error: unexpected symbol` or `command not found`.
+
+::: {.callout-note collapse="true" title="Working on your own computer instead"}
+Allowed, but you take on the setup yourself. Install
+[R](https://cran.r-project.org/) and
+[RStudio](https://posit.co/download/rstudio-desktop/); no R packages are needed.
+`kallisto` needs the binary for your operating system from the
+[kallisto releases](https://github.com/pachterlab/kallisto/releases) — the Linux build
+used above will not run on macOS or Windows. Replace `~/work/module4` by a folder of
+your choosing. The teachers can only reliably help with the ERDA setup.
+:::
+
+## Troubleshooting
+
+| Symptom | What to do |
+|:--|:--|
+| Session will not start, or times out | Wait and try again; a stuck session usually clears. Sessions end after 2 h of inactivity. |
+| `Error: object '…' not found` | A variable from an earlier block does not exist (session ended, or a block was skipped). Rerun the session's setup block, then the blocks above the one that failed. |
+| `cannot open file '…': No such file or directory` | You are not in the module folder, or the file was never made. Run `setwd("~/work/module4")` and check the Files pane. |
+| `download.file` stops with a timeout | Run `options(timeout = 600)` and try again; the TAIR server is sometimes slow. |
+| `subscript out of bounds` after setting `target_gene` | The gene ID is not in the matrix — check the AGI code (e.g. `AT5G17420`, capital letters). |
+| `curl: (22) … error: 403` when downloading reads | The server is busy. Wait a minute and run the same command again. |
+| `./bin/kallisto: No such file or directory` | You are not in `~/work/module4` (run `cd ~/work/module4`), or kallisto is not installed yet (§1.3). |
+| `Error: unexpected symbol` / `command not found` | R code in the Terminal, or shell code in the Console — see the table above. |
+| Work disappeared after a session ended | Only `~/work` persists. Anything saved elsewhere was on the temporary machine. |
+
+If ERDA itself is broken rather than your code, mail **support@erda.dk** — they
+usually reply within one working day.
+
+::: {.provenance}
+This appendix follows the course's **R Studio on ERDA** guide and the official
+[ERDA documentation](https://erda.ku.dk/user-docs/html/sections/erda/overview/index.html).
+ERDA's interface changes occasionally — if a button has moved, Absalon and the teachers
+are the authority, not this page.
+:::
 
 # Where to go next
 
@@ -1801,3 +1850,4 @@ not upload personal or unpublished data.
 - **Other organisms.** The EBI Expression Atlas holds processed RNA-seq for hundreds of
   species — the same code works on any of its TPM matrices.
 - **Cytoscape tutorials:** [tutorials.cytoscape.org](https://tutorials.cytoscape.org/).
+- **More R:** [R for Data Science](https://r4ds.hadley.nz/).

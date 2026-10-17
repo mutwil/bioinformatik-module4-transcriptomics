@@ -23,9 +23,9 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      # No Python, R or quarto-live extension needed: the page is static markdown —
-      # all code blocks are plain fenced ```python, copied by students into
-      # Google Colab, never executed at render time.
+      # No R and no quarto-live extension needed: the page is static markdown —
+      # all code blocks are plain fenced ```r / ```bash, copied by students into
+      # RStudio on ERDA, never executed at render time.
       - name: Render site
         run: quarto render
 
