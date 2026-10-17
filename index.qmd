@@ -368,7 +368,8 @@ million reads each (1.1 GB per file) — far more than we need to see the patter
 lines per read, so that is the first 8 million lines:
 
 - `curl -sL URL` streams the file from ENA;
-- `zcat` unpacks it on the fly;
+- `zcat` unpacks it on the fly (`2>/dev/null` hides the harmless *Broken pipe* message
+  it prints when `head` stops reading);
 - `head -n 8000000` keeps the first 8 million lines — and then stops, which also stops
   the download;
 - `gzip > file` compresses the result again and saves it.
@@ -382,9 +383,9 @@ mkdir -p reads
 ena="https://ftp.sra.ebi.ac.uk/vol1/fastq"
 
 # Leaf, mature (L.lg): the first 2 million reads
-curl -sL $ena/SRR358/001/SRR3581681/SRR3581681.fastq.gz | zcat | head -n 8000000 | gzip > reads/SRR3581681.fastq.gz
+curl -sL $ena/SRR358/001/SRR3581681/SRR3581681.fastq.gz | zcat 2>/dev/null | head -n 8000000 | gzip > reads/SRR3581681.fastq.gz
 # Internode (IN): the first 2 million reads
-curl -sL $ena/SRR358/005/SRR3581705/SRR3581705.fastq.gz | zcat | head -n 8000000 | gzip > reads/SRR3581705.fastq.gz
+curl -sL $ena/SRR358/005/SRR3581705/SRR3581705.fastq.gz | zcat 2>/dev/null | head -n 8000000 | gzip > reads/SRR3581705.fastq.gz
 # And another sample, to demonstrate something :) (the whole file)
 curl -sL $ena/SRR343/023/SRR34314723/SRR34314723_1.fastq.gz -o reads/SRR34314723_1.fastq.gz
 
