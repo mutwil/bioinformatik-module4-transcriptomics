@@ -102,7 +102,7 @@ mornings plus Thursday afternoons — taught by **Marek Mutwil** ([mutwil@plen.k
 | | 09:30–12:00 | Mini-project, and finishing your presentation *(provisional)* | this workbook | [§6](#sec-project) |
 | | 12:00–13:00 | *Lunch* | | |
 | | **13:00–16:00** | **Peer review and Q&A** | | |
-| | 13:00–13:55 | **Peer review** of the mini-project presentations | | [§6.8](#sec-present) |
+| | 13:00–13:55 | **Peer review** of the mini-project presentations | | [§6.7](#sec-present) |
 | | 13:55–14:05 | *Break* | | |
 | | 14:05–16:00 | Q&A session (*spørgetime*) | | |
 :::
@@ -115,8 +115,8 @@ provisional** — their content may still change before week 44.
 
 - Tuesday, week 43 — `transcriptomic_databases_plants.pdf`; *TPM vs RPKM explained*
 - Thursday, week 43 — `co-expression analysis.pdf`, `bulk atlas.pdf`, `cell atlas.pdf`
-- Thursday, week 44 — `secondary cell wall regulation.pdf` (you will also feed this
-  review to an AI model in [§6.3](#sec-grn))
+- Thursday, week 44 — `secondary cell wall regulation.pdf` (background for the
+  mini-project)
 
 ::: {.callout-note collapse="true" title="Modul 4 ugeplan (dansk — samme plan som på Absalon)"}
 **Foreløbigt skema** (kan blive justeret under undervisningsdagene)
@@ -1618,13 +1618,12 @@ Thursday 29 October. Check this page again before class.
 :::
 
 Let's wrap the module up with a project. You will build a **multi-omic network** of
-secondary cell wall biosynthesis in Arabidopsis by combining three kinds of evidence:
+secondary cell wall biosynthesis in Arabidopsis by combining two kinds of evidence:
 
 | Layer | Evidence | Source | Built in |
 |:--|:--|:--|:--|
 | co-expression | the genes' mRNA levels rise and fall together | expression atlas | Session 5 ✔ |
 | protein–protein interaction (PPI) | the proteins physically bind each other | BioGRID | §6.2 |
-| gene regulation | a transcription factor switches a gene on or off | literature, read by an AI model | §6.3 |
 
 Each group then picks a **gene from the network**, characterises it, and presents it in
 a **5-minute talk** in the afternoon.
@@ -1634,7 +1633,7 @@ a **5-minute talk** in the afternoon.
 Choose one gene from the CESA7 co-expression network (Session 5) — ideally one your
 group finds interesting: a transcription factor, a hub, or an unnamed (`_nan`) gene. Tell
 Marek which one, so that groups do not all pick the same gene. Everything below is done
-for CESA7's network; you then zoom in on your gene in §6.5–6.7.
+for CESA7's network; you then zoom in on your gene in §6.4–6.6.
 
 ## 6.2 Protein–protein interactions from BioGRID
 
@@ -1692,54 +1691,13 @@ protein needed for xylem development. The evidence comes from yeast **two-hybrid
 protein-fragment complementation assay, not principal component analysis!).
 :::
 
-## 6.3 Gene regulation from the literature, with an AI model {#sec-grn}
+## 6.3 Combine the two layers into one network
 
-Gene regulatory interactions — which transcription factor controls which gene — are
-mostly buried in the literature. Large language models (LLMs) are good at extracting
-such relationships into a table, a so-called **knowledge graph**.
-
-::: {.web}
-1. Download the review `secondary cell wall regulation.pdf` from Absalon. It describes
-   the known regulators of secondary cell wall genes.
-2. Open an AI assistant that can read PDFs (e.g. ChatGPT, Claude or Microsoft Copilot
-   with your KU account), upload the review and give it this prompt:
-
-> From this paper, generate a knowledge graph of gene regulation. Put the
-> transcription factor in the first column, its target gene in the second column and
-> the relationship type (activation or repression) in the third column. Identify
-> every gene by its Arabidopsis AGI code (e.g. AT5G17420), followed by an underscore
-> and its name — e.g. AT5G17420_CESA7, AT5G44030_CESA4, AT4G18780_CESA8. If the
-> secondary cell wall cellulose synthases are mentioned, connect them to the
-> transcription factors that control them. Give me a tab-delimited file with the
-> header TF, target, relationship.
-
-3. Save the answer as a text file called **`GRN.txt`** and upload it to ERDA: in
-   RStudio's **Files** pane, go to `~/work/module4` and click **Upload**.
-4. **Check it.** LLMs make mistakes: spot-check a few edges against the review. Are the
-   AGI codes real? Does the paper actually say what the table says?
-:::
-
-Uploading a published review is fine; do not upload unpublished or personal data to an
-AI service.
-
-## 6.4 Combine the three layers into one network
-
-The three files label genes the same way (`AGI_name`), so they can be stacked into **one
-edge table** with a column `edge_type` that says which layer each edge comes from. Genes
-in `GRN.txt` are matched by their AGI code, so it does not matter if the AI model named
-them slightly differently.
+Both files label genes the same way (`AGI_name`), so they can be stacked into **one
+edge table** with a column `edge_type` that says which layer each edge comes from.
 
 ```r
 setwd("~/work/module4")
-
-# Turn any gene name that contains an AGI code into the AGI_name label
-to_node <- function(names) {
-  has_agi <- grepl("AT[1-5CM]G[0-9]{5}", names, ignore.case = TRUE)
-  agi <- toupper(sub(".*?(AT[1-5CM]G[0-9]{5}).*", "\\1", names, ignore.case = TRUE, perl = TRUE))
-  label <- ifelse(agi %in% names(agi2label), agi2label[agi], agi)
-  if (any(!has_agi)) cat("No AGI code found, kept as is:", names[!has_agi], "\n")
-  unname(ifelse(has_agi, label, trimws(names)))
-}
 
 # Layer 1: co-expression (Session 5)
 coexp <- read.delim(paste0("for_cytoscape_", target_gene, ".tsv"))
@@ -1751,12 +1709,7 @@ ppi_edges <- read.delim("PPI.txt")
 ppi_edges <- data.frame(source = ppi_edges$gene_A, target = ppi_edges$gene_B,
                         edge_type = "PPI", evidence = ppi_edges$experiment)
 
-# Layer 3: gene regulation from the literature (§6.3)
-grn <- read.delim("GRN.txt", colClasses = "character")
-grn <- data.frame(source = to_node(grn[[1]]), target = to_node(grn[[2]]),
-                  edge_type = "regulation", evidence = grn[[3]])
-
-network <- rbind(coexp, ppi_edges, grn)
+network <- rbind(coexp, ppi_edges)
 write.table(network, paste0("multiomics_network_", target_gene, ".tsv"),
             sep = "\t", quote = FALSE, row.names = FALSE)
 table(network$edge_type)
@@ -1764,15 +1717,7 @@ table(network$edge_type)
 
 Download `multiomics_network_AT5G17420.tsv` to your computer as in §5.3.
 
-::: {.callout-note collapse="true" title="No GRN.txt yet? Build the network without it"}
-Skip the "Layer 3" lines and replace the `rbind` line with:
-
-```r
-network <- rbind(coexp, ppi_edges)
-```
-:::
-
-## 6.5 Style and analyse the multi-omic network
+## 6.4 Style and analyse the multi-omic network
 
 ::: {.cytoscape}
 1. **Import** the file as in §5.4 (*File → Import → Network from File…*). In the import
@@ -1785,9 +1730,9 @@ network <- rbind(coexp, ppi_edges)
    - run *Tools → Analyze Network* again, colour nodes by **Degree** and node borders by
      **ClusteringCoefficient** (§5.7).
 3. **Edges:** *Style → Edge → Stroke Color* (and *Line Type*) → map the column
-   `edge_type` with a **Discrete Mapping**: one style for co-expression, one for PPI,
-   one for regulation. For regulation, give activation and repression different colours
-   or arrow shapes (map `evidence`).
+   `edge_type` with a **Discrete Mapping**: one style for co-expression, another for
+   PPI. Where both kinds of edge connect the same two genes, you now have two
+   independent lines of evidence.
 4. **Arrange** the network so that the different node and edge categories are easy to
    see.
 5. **Zoom in on your gene:** select it, then *Select → Nodes → First Neighbors of
@@ -1798,12 +1743,13 @@ network <- rbind(coexp, ppi_edges)
 
 *Your turn* — in the second-neighbourhood network of your gene, describe:
 
-- Which genes regulate your gene?
+- Which transcription factors (MYB, NAC …) are connected to your gene? They are
+  candidate regulators — co-expression alone does not prove they control it.
 - What are the functions of some of the unnamed (`_nan`) genes?
 - Does your protein interact with other proteins?
 - Do you find anything new and unexpected?
 
-## 6.6 Additional evidence from online network databases
+## 6.5 Additional evidence from online network databases
 
 There are now many online databases that show expression profiles, co-expression and
 other networks for your gene. Use them to support (or challenge) your network.
@@ -1856,7 +1802,7 @@ other networks for your gene. Use them to support (or challenge) your network.
    support; where it differs, read the source sentence — the AI can be wrong too.
 :::
 
-## 6.7 The expression profile of your gene
+## 6.6 The expression profile of your gene
 
 ::: {.web}
 Go to [ePlant](https://bar.utoronto.ca/eplant/) and enter the AGI code of your gene.
@@ -1866,14 +1812,14 @@ Go to [ePlant](https://bar.utoronto.ca/eplant/) and enter the AGI code of your g
 3. And for **cell types in the root**.
 :::
 
-## 6.8 The presentation {#sec-present}
+## 6.7 The presentation {#sec-present}
 
 Each group gives a **5-minute presentation** of its gene, followed by peer review in the
 afternoon. Cover:
 
 - the function of your gene (what is known — UniProt, TAIR, PlantConnectome);
 - the multi-omic network you generated, with your gene highlighted;
-- which genes regulate your gene;
+- which transcription factors are connected to your gene (candidate regulators);
 - the functions of some of the unnamed (`_nan`) genes in its neighbourhood;
 - whether your protein interacts with other proteins;
 - anything new or unexpected;
@@ -1937,8 +1883,8 @@ are not, so rerun the session's setup block.
 ## 4. The files
 
 You do not upload any data: every dataset is downloaded straight into
-`~/work/module4` by the code. The only file you upload yourself is `GRN.txt` in
-[§6.3](#sec-grn). When the module is done, the folder looks like this:
+`~/work/module4` by the code — you never upload anything. When the module is done,
+the folder looks like this:
 
 ```
 ~/work/module4/
@@ -1951,7 +1897,7 @@ You do not upload any data: every dataset is downloaded straight into
     TAIR10_functional_descriptions.txt      gene descriptions (Sessions 3-6)
     for_cytoscape_AT5G17420.tsv             co-expression network (Session 5)
     BIOGRID-ORGANISM-5.0.250.tab.zip        BioGRID, and the Arabidopsis file from it (mini-project)
-    PPI.txt  GRN.txt                        PPI and regulatory layers (mini-project)
+    PPI.txt                                 protein-protein interactions (mini-project)
     multiomics_network_AT5G17420.tsv        the combined network (mini-project)
 ```
 
