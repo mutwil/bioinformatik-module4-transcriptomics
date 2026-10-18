@@ -71,38 +71,45 @@ downloaded straight from the source into your ERDA folder.
 
 # Schedule {#sec-schedule}
 
-Module 4 runs over two weeks, Tuesday and Thursday mornings, plus Thursday afternoons
-— taught by **Marek Mutwil** ([mutwil@plen.ku.dk](mailto:mutwil@plen.ku.dk)). The
+Module 4 runs over two weeks in **October 2026** (weeks 43–44), Tuesday and Thursday
+mornings plus Thursday afternoons — taught by **Marek Mutwil** ([mutwil@plen.ku.dk](mailto:mutwil@plen.ku.dk)). The
 **Section** column links to the part of this page that goes with each block.
 
 ::: {.schedule}
 | Date | Time | What happens | Slides / materials | Section |
 |:--|:--|:--|:--|:--|
-| **Week 43**<br>**Tue 20-10**<br>09:00–12:00 | 09:00–09:50 | Lecture **M4F1**: Transcriptomics — background and theory | `M4F1 - Transcriptomics Background and theory.pdf` | |
+| **Week 43**<br>**Tue 20 Oct** | **09:00–12:00** | **Basic gene expression analysis** | | |
+| | 09:00–09:50 | Lecture **M4F1**: Transcriptomics — background and theory | `M4F1 - Transcriptomics Background and theory.pdf` | |
 | | 09:50–10:05 | *Break* | | |
 | | 10:05–10:20 | Lecture **M4F2**: Normalization metrics in RNA-seq | `M4F2 - Normalization metrics in RNA-seq.pdf` | |
 | | 10:20–12:00 | Exercise **M4Ø1**: RStudio on ERDA, and estimating gene expression with kallisto | this workbook | [§1](#sec-o1) |
-| **Thu 22-10**<br>09:00–12:00<br>13:00–16:00 | 09:00–10:15 | Lecture **M4F3**: Exploratory data analysis (EDA) and data preprocessing | | |
+| **Thu 22 Oct** | **09:00–12:00** | **Exploratory data analysis** | | |
+| | 09:00–10:15 | Lecture **M4F3**: Exploratory data analysis (EDA) and data preprocessing | | |
 | | 10:15–10:30 | *Break* | | |
 | | 10:30–12:00 | Exercise **M4Ø2**: EDA and preprocessing | this workbook | [§2](#sec-o2) |
 | | 12:00–13:00 | *Lunch* | | |
+| | **13:00–16:00** | **Basic transcriptomics analyses and online databases** | | |
 | | 13:00–13:55 | Lecture **M4F4**: Basic transcriptomics analyses and online databases | | |
 | | 13:55–14:10 | *Break* | | |
 | | 14:10–15:00 | Exercise **M4Ø3**: Co-expression analysis | this workbook | [§3](#sec-o3) |
 | | 15:00–15:15 | *Break* | | |
 | | 15:15–16:00 | Exercise **M4Ø4**: Transcriptomic databases | this workbook | [§4](#sec-o4) |
-| **Week 44**<br>**Tue 27-10**<br>09:00–12:00 | 09:00–10:00 | Lecture **M4F5**: Biological networks | `M4F5 - BiologicalNetworks.pdf` | |
-| | 10:00–12:00 | Exercise **M4Ø5**: Co-expression network analysis in Cytoscape | this workbook · [Cytoscape](https://cytoscape.org/download.html) | [§5](#sec-o5) |
-| **Thu 29-10**<br>09:00–12:00<br>13:00–16:00 | 09:00–09:15 | Lecture **M4F6**: Multi-omic network analysis of secondary cell wall biosynthesis | `M4F6 - NetworkProject.pptx`<br>`secondary cell wall regulation.pdf` | [§6](#sec-project) |
-| | 09:30–12:00 | Mini-project, and finishing your presentation | this workbook | [§6](#sec-project) |
+| **Week 44**<br>**Tue 27 Oct** | **09:00–12:00** | **Biological networks** | | |
+| | 09:00–10:00 | Lecture **M4F5**: Biological networks | `M4F5 - BiologicalNetworks.pdf` | |
+| | 10:00–12:00 | Exercise **M4Ø5**: Co-expression network analysis in Cytoscape *(provisional)* | this workbook · [Cytoscape](https://cytoscape.org/download.html) | [§5](#sec-o5) |
+| **Thu 29 Oct** | **09:00–12:00** | **Mini-project** | | |
+| | 09:00–09:15 | Lecture **M4F6**: Multi-omic network analysis of secondary cell wall biosynthesis | `M4F6 - NetworkProject.pptx`<br>`secondary cell wall regulation.pdf` | [§6](#sec-project) |
+| | 09:30–12:00 | Mini-project, and finishing your presentation *(provisional)* | this workbook | [§6](#sec-project) |
 | | 12:00–13:00 | *Lunch* | | |
+| | **13:00–16:00** | **Peer review and Q&A** | | |
 | | 13:00–13:55 | **Peer review** of the mini-project presentations | | [§6.8](#sec-present) |
 | | 13:55–14:05 | *Break* | | |
 | | 14:05–16:00 | Q&A session (*spørgetime*) | | |
 :::
 
 The time plan is tentative and may be adjusted during teaching; Absalon is the
-authority if anything changes.
+authority if anything changes. **The week 44 exercises (M4Ø5 and the mini-project) are
+provisional** — their content may still change before week 44.
 
 **Reading**, to be done *before* the session it belongs to (all on Absalon):
 
@@ -111,15 +118,74 @@ authority if anything changes.
 - Thursday, week 44 — `secondary cell wall regulation.pdf` (you will also feed this
   review to an AI model in [§6.3](#sec-grn))
 
-::: {.provenance}
-The block-by-block times and readings are those of the 2025 *Modul 4 ugeplan*. The
-2026 dates assume the module keeps its slot (weeks 43–44, Tuesday + Thursday).
+::: {.callout-note collapse="true" title="Modul 4 ugeplan (dansk — samme plan som på Absalon)"}
+**Foreløbigt skema** (kan blive justeret under undervisningsdagene)
+
+**Underviser:** Marek Mutwil (mutwil@plen.ku.dk)
+
+#### Uge 43 – Genekspressionsanalyse: tirsdag 20. oktober og torsdag 22. oktober
+
+###### Tirsdag, 20-10-2026
+*Litteratur:* transcriptomic_databases_plants.pdf, TPM vs RPKM explained
+
+**09:00 – 12:00 Basic gene expression analysis**
+
+- 09:00 – 09:50 Forelæsning M4F1: Transcriptomics: Background and theory
+- 09:50 – 10:05 Pause
+- 10:05 – 10:20 Forelæsning M4F2: Normalization metrics in RNA-seq
+- 10:20 – 12:00 Øvelse M4Ø1: RStudio on ERDA and estimating gene expression with kallisto
+
+###### Torsdag, 22-10-2026
+*Litteratur:* co-expression analysis.pdf, bulk atlas.pdf, cell atlas.pdf
+
+**09:00 – 12:00 Exploratory data analysis**
+
+- 09:00 – 10:15 Forelæsning M4F3: Exploratory Data Analysis (EDA) and Data Preprocessing
+- 10:15 – 10:30 Pause
+- 10:30 – 12:00 Øvelse M4Ø2: EDA and preprocessing
+
+**12:00 – 13:00 Frokostpause**
+
+**13:00 – 16:00 Basic transcriptomics analyses and online databases**
+
+- 13:00 – 13:55 Forelæsning M4F4: Basic transcriptomics analyses and online databases
+- 13:55 – 14:10 Pause
+- 14:10 – 15:00 Øvelse M4Ø3: Co-expression analysis
+- 15:00 – 15:15 Pause
+- 15:15 – 16:00 Øvelse M4Ø4: Transcriptomic databases
+
+#### Uge 44 – Biological networks: tirsdag 27. oktober og torsdag 29. oktober
+
+*Øvelserne i uge 44 er foreløbige og kan stadig blive ændret.*
+
+###### Tirsdag, 27-10-2026
+
+**09:00 – 12:00 Biological networks**
+
+- 09:00 – 10:00 Forelæsning M4F5: Biological networks
+- 10:00 – 12:00 Øvelse M4Ø5: Co-expression network analysis in Cytoscape *(foreløbig)*
+
+###### Torsdag, 29-10-2026
+*Litteratur:* secondary cell wall regulation.pdf
+
+**09:00 – 12:00 Mini-projekt**
+
+- 09:00 – 09:15 Forelæsning M4F6: Multi-omic network analysis of secondary cell wall biosynthesis
+- 09:30 – 12:00 Fortsættelse af mini-projekt og færdiggørelse af præsentation *(foreløbig)*
+
+**12:00 – 13:00 Frokostpause**
+
+**13:00 – 16:00 Peer review og spørgetime**
+
+- 13:00 – 13:55 Peer review
+- 13:55 – 14:05 Pause
+- 14:05 – 16:00 Spørgetime
 :::
 
 ---
 
 # Session M4Ø1 — RStudio on ERDA, and estimating gene expression with kallisto {#sec-o1}
-[Tuesday, week 43]{.session-chip}
+[Tuesday 20-10-2026 · week 43]{.session-chip}
 
 Today has two halves. First you learn just enough RStudio — the console, a script and
 the Terminal — to work through the module. Then you do what every RNA-seq project
@@ -541,7 +607,7 @@ In the Terminal: `rm -r ~/work/module4/reads`
 ---
 
 # Session M4Ø2 — EDA and preprocessing {#sec-o2}
-[Thursday, week 43 · morning]{.session-chip}
+[Thursday 22-10-2026 · morning]{.session-chip}
 
 In Session 1 you made expression values and used `run_info.json` to catch a bad
 sample. But samples can look fine in their run statistics and still be problematic —
@@ -908,7 +974,7 @@ dominated by a small set of very specialised transcripts.
 ---
 
 # Session M4Ø3 — Co-expression analysis {#sec-o3}
-[Thursday, week 43 · afternoon]{.session-chip}
+[Thursday 22-10-2026 · afternoon]{.session-chip}
 
 ## 3.1 What is co-expression?
 
@@ -1110,7 +1176,7 @@ gene belongs to.
 ---
 
 # Session M4Ø4 — Transcriptomic databases {#sec-o4}
-[Thursday, week 43 · afternoon]{.session-chip}
+[Thursday 22-10-2026 · afternoon]{.session-chip}
 
 Let's get to know some popular plant transcriptomic databases. Even if plants are not
 your main interest: transcriptomic databases look much the same for animals, fungi,
@@ -1278,7 +1344,12 @@ jobs:
 ---
 
 # Session M4Ø5 — Co-expression network analysis in Cytoscape {#sec-o5}
-[Tuesday, week 44]{.session-chip}
+[Tuesday 27-10-2026 · week 44 · provisional]{.session-chip}
+
+::: {.callout-note title="Provisional"}
+The week 44 exercises are provisional — this session may still change before
+Tuesday 27 October. Check this page again before class.
+:::
 
 Today you go from **raw transcriptomic data** to a **biological network** that you can
 visualise and analyse in Cytoscape.
@@ -1539,7 +1610,12 @@ IRX12, **CESA4**, CTL2 and the transcription factor NAC073/SND2 (15 each).
 ---
 
 # Mini-project — a multi-omic network of the secondary cell wall {#sec-project}
-[Thursday, week 44]{.session-chip}
+[Thursday 29-10-2026 · week 44 · provisional]{.session-chip}
+
+::: {.callout-note title="Provisional"}
+The week 44 exercises are provisional — the mini-project may still change before
+Thursday 29 October. Check this page again before class.
+:::
 
 Let's wrap the module up with a project. You will build a **multi-omic network** of
 secondary cell wall biosynthesis in Arabidopsis by combining three kinds of evidence:
