@@ -84,12 +84,12 @@ mornings plus Thursday afternoons — taught by **Marek Mutwil** ([mutwil@plen.k
 | | 10:05–10:20 | Lecture **M4F2**: Normalization metrics in RNA-seq | `M4F2 - Normalization metrics in RNA-seq.pdf` | |
 | | 10:20–12:00 | Exercise **M4Ø1**: RStudio on ERDA, and estimating gene expression with kallisto | this workbook | [§1](#sec-o1) |
 | **Thu 22 Oct** | **09:00–12:00** | **Exploratory data analysis** | | |
-| | 09:00–10:15 | Lecture **M4F3**: Exploratory data analysis (EDA) and data preprocessing | | |
+| | 09:00–10:15 | Lecture **M4F3**: Exploratory data analysis (EDA) and data preprocessing | `M4F3 - Exploratory Data Analysis (EDA) and Data Preprocessing.pdf` | |
 | | 10:15–10:30 | *Break* | | |
 | | 10:30–12:00 | Exercise **M4Ø2**: EDA and preprocessing | this workbook | [§2](#sec-o2) |
 | | 12:00–13:00 | *Lunch* | | |
 | | **13:00–16:00** | **Basic transcriptomics analyses and online databases** | | |
-| | 13:00–13:55 | Lecture **M4F4**: Basic transcriptomics analyses and online databases | | |
+| | 13:00–13:55 | Lecture **M4F4**: Basic transcriptomics analyses and online databases | `M4F4 - Basic transcriptomic analyses and online databases.pdf` | |
 | | 13:55–14:10 | *Break* | | |
 | | 14:10–15:00 | Exercise **M4Ø3**: Co-expression analysis | this workbook | [§3](#sec-o3) |
 | | 15:00–15:15 | *Break* | | |
