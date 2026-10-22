@@ -1135,13 +1135,24 @@ target_gene <- "AT1G30380"   # replace with your gene of interest
 # with a warning that we silence.
 pcc <- suppressWarnings(cor(t(expr_unique), expr_unique[target_gene, ]))[, 1]
 
-result <- data.frame(gene = rownames(expr_unique), description = description,
-                     PCC = round(pcc, 6))
+# One row per gene: its ID, its PCC with the target, and its TAIR description
+# (looked up by gene ID, so the three columns always belong together)
+result <- data.frame(gene = names(pcc), PCC = round(pcc, 3),
+                     description = tair$Short_description[match(names(pcc), tair$gene)],
+                     row.names = NULL)
 
 # Sort by PCC and keep the top 100
-result <- result[order(result$PCC, decreasing = TRUE), ]
-print(head(result, 100), row.names = FALSE)
+result <- head(result[order(result$PCC, decreasing = TRUE), ], 100)
+
+# Show the table in RStudio's data viewer (a new tab, top left) ...
+View(result)
+# ... and print it in the console, with descriptions shortened to fit the width
+print(transform(result, description = substr(description, 1, 50)),
+      row.names = FALSE, right = FALSE)
 ```
+
+`View()` opens the table as a spreadsheet you can sort and search; the console print
+cuts long descriptions to 50 characters so each gene stays on one line.
 
 *Your turn:* does the function of the top genes correspond to photosynthesis? Are
 there any unexpected functions?
@@ -1413,8 +1424,6 @@ expr[is.na(expr)] <- 0
 rownames(expr) <- gene_label
 expr_log <- log2(expr + 1)
 
-# The description of every gene, looked up by label
-description <- setNames(tair$Short_description[match(tpm[["Gene ID"]], tair$gene)], gene_label)
 
 dim(expr_log)
 ```
@@ -1430,10 +1439,15 @@ target_label <- agi2label[target_gene]
 # PCC of every gene with the target
 pcc <- suppressWarnings(cor(t(expr_log), expr_log[target_label, ]))[, 1]
 
-result <- data.frame(gene = names(pcc), description = description[names(pcc)],
-                     PCC = round(pcc, 6), row.names = NULL)
+# Gene label, PCC and TAIR description, looked up by the AGI part of the label
+result <- data.frame(gene = names(pcc), PCC = round(pcc, 3),
+                     description = tair$Short_description[match(sub("_.*", "", names(pcc)), tair$gene)],
+                     row.names = NULL)
 result <- head(result[order(result$PCC, decreasing = TRUE), ], 100)
-print(result, row.names = FALSE)
+
+View(result)
+print(transform(result, description = substr(description, 1, 50)),
+      row.names = FALSE, right = FALSE)
 ```
 
 *Your turn:* what do you see in this list? Are the PCC values high, and is there an
