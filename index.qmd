@@ -102,7 +102,7 @@ mornings plus Thursday afternoons — taught by **Marek Mutwil** ([mutwil@plen.k
 | | 09:30–12:00 | Mini-project, and finishing your presentation *(provisional)* | this workbook | [§6](#sec-project) |
 | | 12:00–13:00 | *Lunch* | | |
 | | **13:00–16:00** | **Peer review and Q&A** | | |
-| | 13:00–13:55 | **Peer review** of the mini-project presentations | | [§6.7](#sec-present) |
+| | 13:00–13:55 | **Peer review** of the mini-project presentations | | [§6.9](#sec-present) |
 | | 13:55–14:05 | *Break* | | |
 | | 14:05–16:00 | Q&A session (*spørgetime*) | | |
 :::
@@ -1623,7 +1623,7 @@ IRX12, **CESA4**, CTL2 and the transcription factor NAC073/SND2 (15 each).
 
 ---
 
-# Mini-project — a multi-omic network of the secondary cell wall {#sec-project}
+# Mini-project — the network of your gene {#sec-project}
 [Thursday 29-10-2026 · week 44 · provisional]{.session-chip}
 
 ::: {.callout-note title="Provisional"}
@@ -1631,213 +1631,275 @@ The week 44 exercises are provisional — the mini-project may still change befo
 Thursday 29 October. Check this page again before class.
 :::
 
-Let's wrap the module up with a project. You will build a **multi-omic network** of
-secondary cell wall biosynthesis in Arabidopsis by combining two kinds of evidence:
+Let's wrap the module up with a project. Each group **adopts one gene**, finds out what
+it does and where, and builds its **multi-omic network** from three kinds of evidence:
 
-| Layer | Evidence | Source | Built in |
+| Layer | Evidence | Source | Section |
 |:--|:--|:--|:--|
-| co-expression | the genes' mRNA levels rise and fall together | expression atlas | Session 5 ✔ |
-| protein–protein interaction (PPI) | the proteins physically bind each other | BioGRID | §6.2 |
+| co-expression | the genes' mRNA levels rise and fall together | expression atlas (Session 5) | §6.4 |
+| protein–protein interaction (PPI) | the proteins physically bind each other | BioGRID | §6.5 |
+| gene regulation | a transcription factor switches a gene on or off | AtRegNet (curated, experimentally confirmed) | §6.6 |
 
-Each group then picks a **gene from the network**, characterises it, and presents it in
-a **5-minute talk** in the afternoon.
+Your group answers **six questions** about its gene — and presents the answers in a
+**5-minute talk** in the afternoon:
+
+::: {.callout-important title="The six questions"}
+1. **What is the function of my gene?** (functional annotation databases, §6.2)
+2. **In which organ, tissue and cell type is it expressed?** (§6.3)
+3. **Where in the cell is the protein?** (§6.3)
+4. **Which genes is it co-expressed with?** (§6.4)
+5. **Which proteins does it interact with?** (§6.5)
+6. **Which transcription factors regulate it and its neighbours?** (§6.6)
+:::
 
 ## 6.1 Pick your gene
 
-Choose one gene from the CESA7 co-expression network (Session 5) — ideally one your
-group finds interesting: a transcription factor, a hub, or an unnamed (`_nan`) gene. Tell
-Marek which one, so that groups do not all pick the same gene. Everything below is done
-for CESA7's network; you then zoom in on your gene in §6.4–6.6.
+Each group claims **one** gene from the table — claim it in the Bioinformatik channel
+on Discord, so that no two groups take the same gene. The genes come from six different
+processes, so every group tells a different story. The **cutoff** is the PCC above which
+two genes are connected in your co-expression network; it differs between genes because
+some processes are co-regulated much more tightly than others (§6.4).
 
-## 6.2 Protein–protein interactions from BioGRID
+| Process | Gene | AGI code | Cutoff |
+|:--|:--|:--|:--|
+| Secondary cell wall | CESA7 | AT5G17420 | 0.90 |
+| Secondary cell wall | MYB46 | AT5G12870 | 0.90 |
+| Primary cell wall | CESA3 | AT5G05170 | 0.93 |
+| Flower development | AP3 | AT3G54340 | 0.85 |
+| Flower development | SEP3 | AT1G24260 | 0.85 |
+| Photosynthesis | CAB1 | AT1G29930 | 0.97 |
+| Photosynthesis | RBCS1A | AT1G67090 | 0.97 |
+| Cell division | CYCB1;1 | AT4G37490 | 0.93 |
+| Cell division | CDKB1;1 | AT3G54180 | 0.93 |
+| Seed storage | 2S3 | AT4G27160 | 0.97 |
 
-[BioGRID](https://thebiogrid.org/) collects experimentally determined protein–protein
-interactions for all organisms. We extract every interaction **between two of the top
-100 CESA7-co-expressed genes**.
+Two pairs belong together: **CESA7 and MYB46**, and **AP3 and SEP3**, are each a gene
+and a transcription factor that controls it. If both genes of a pair are taken, the
+two groups can compare their networks from the two sides.
+
+## 6.2 What does your gene do? (Q1)
+
+::: {.web}
+1. [**UniProt**](https://www.uniprot.org/) — search for your AGI code and pick the
+   *Arabidopsis thaliana* entry. Read the **Function** section and the **GO terms**:
+   which molecular function, which biological process?
+2. [**TAIR**](https://www.arabidopsis.org/) — search the AGI code. Read the gene's
+   description, its other names, and skim the titles of the publications: what is it
+   known for, and what does the mutant look like?
+:::
+
+## 6.3 Where is it expressed — and where in the cell? (Q2, Q3)
+
+::: {.web}
+1. **Organs and tissues** — [ePlant](https://bar.utoronto.ca/eplant/): enter the AGI
+   code and open the **Plant eFP** viewer. In which organs and tissues is your gene
+   expressed? Compare with the [EBI Expression Atlas](https://www.ebi.ac.uk/gxa/home)
+   baseline view (§4.2).
+2. **Cell types** — in ePlant, the **Tissue and Experiment eFP** viewers show cell
+   types (e.g. root cell types). For a leaf gene, also try the leaf single-cell atlas
+   from §4.4.
+3. **Where in the cell** — in ePlant, open the **Cell eFP** viewer: it shows where the
+   protein is located in the cell (data from the SUBA database). Does the location fit
+   the function you found in Q1?
+
+*If ePlant is down:* use the EBI Expression Atlas for Q2 and the **Subcellular
+location** section of the UniProt entry for Q3.
+:::
+
+## 6.4 Which genes is it co-expressed with? (Q4)
+
+This is Session 5's network, built around your gene.
 
 ::: {.run-local}
-If you have had a break since Session 5, first rerun **§5.1** (setup) and **§5.2**
-(top 100 genes) — this block needs `result` and `agi2label`. The BioGRID download is
-69 MB.
+First run the **§5.1 setup block** (it loads the atlas, the gene labels and the TAIR
+descriptions). Then set **your** gene and cutoff in the first two lines below.
 :::
+
+```r
+my_gene <- "AT5G17420"   # your gene's AGI code (from the table in §6.1)
+cutoff  <- 0.90          # your gene's cutoff (from the same table)
+
+setwd("~/work/module4")
+my_label <- agi2label[[my_gene]]
+
+# The 100 genes most co-expressed with your gene (your gene itself is number 1)
+pcc <- suppressWarnings(cor(t(expr_log), expr_log[my_label, ]))[, 1]
+top_genes <- names(sort(pcc, decreasing = TRUE))[1:100]
+
+# Co-expression network: every pair of the 100 genes with PCC above your cutoff
+C <- cor(t(expr_log[top_genes, ]))
+pairs <- which(C > cutoff & upper.tri(C), arr.ind = TRUE)
+coexp <- data.frame(source = rownames(C)[pairs[, 1]], target = colnames(C)[pairs[, 2]],
+                    edge_type = "coexpression", evidence = as.character(round(C[pairs], 3)))
+cat(nrow(coexp), "co-expression edges among",
+    length(unique(c(coexp$source, coexp$target))), "genes\n")
+
+# Q4: the first neighbours of your gene = the genes directly connected to it
+neighbours <- setdiff(colnames(C)[C[my_label, ] > cutoff], my_label)
+q4 <- data.frame(gene = neighbours, PCC = round(C[my_label, neighbours], 3),
+                 description = tair$Short_description[match(sub("_.*", "", neighbours), tair$gene)])
+q4 <- q4[order(q4$PCC, decreasing = TRUE), ]
+View(q4)
+print(transform(q4, description = substr(description, 1, 50)), row.names = FALSE, right = FALSE)
+```
+
+*Your turn:* which genes are your gene's neighbours? Do their functions fit your
+gene's function from Q1? Are there unnamed (`_nan`) genes or genes of unknown function
+among them — what would you predict they do?
+
+::: {.callout-tip collapse="true" title="Why does the cutoff differ between genes?"}
+Photosynthesis, ribosome and seed-storage genes are switched on and off together very
+tightly — with a cutoff of 0.9, nearly every one of their 100 genes is connected to
+every other (a "hairball" of thousands of edges). Their table entry uses 0.97 instead.
+Flower and cell-wall genes are co-regulated less tightly, so a lower cutoff is needed to
+keep the gene in its own network. The right cutoff is the one that gives a network you
+can read: a few dozen genes and a few hundred edges.
+:::
+
+## 6.5 Which proteins does it interact with? (Q5)
 
 ```r
 setwd("~/work/module4")
 options(timeout = 600)
 
-# Download BioGRID once, and unpack only the Arabidopsis file
+# BioGRID, Arabidopsis file (downloaded only the first time)
 biogrid_zip <- "BIOGRID-ORGANISM-5.0.250.tab.zip"
 if (!file.exists(biogrid_zip))
   download.file("https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive/BIOGRID-5.0.250/BIOGRID-ORGANISM-5.0.250.tab.zip",
                 biogrid_zip, mode = "wb")
 ppi_file <- "BIOGRID-ORGANISM-Arabidopsis_thaliana_Columbia-5.0.250.tab.txt"
-unzip(biogrid_zip, files = ppi_file)
-
-# The file starts with licence text; find the line where the table begins
+if (!file.exists(ppi_file)) unzip(biogrid_zip, files = ppi_file)
 skip <- grep("^INTERACTOR_A", readLines(ppi_file, n = 200))[1] - 1
 biogrid <- read.delim(ppi_file, skip = skip, quote = "", colClasses = "character")
+a <- toupper(biogrid$INTERACTOR_A)
+b <- toupper(biogrid$INTERACTOR_B)
 
-# Keep interactions where BOTH proteins are among the top 100 co-expressed genes
-top_agi <- toupper(sub("_.*", "", result$gene))
-hits <- biogrid[toupper(biogrid$INTERACTOR_A) %in% top_agi &
-                toupper(biogrid$INTERACTOR_B) %in% top_agi, ]
+# Q5: every protein that your protein interacts with
+mine <- biogrid[(a == my_gene | b == my_gene) & a != b, ]
+partner_is_B <- toupper(mine$INTERACTOR_A) == my_gene
+q5 <- unique(data.frame(
+  partner    = ifelse(partner_is_B, mine$INTERACTOR_B, mine$INTERACTOR_A),
+  symbol     = ifelse(partner_is_B, mine$OFFICIAL_SYMBOL_B, mine$OFFICIAL_SYMBOL_A),
+  experiment = mine$EXPERIMENTAL_SYSTEM))
+q5$co_expressed <- toupper(q5$partner) %in% sub("_.*", "", top_genes)
+print(q5, row.names = FALSE)
 
-# Label the proteins as in the co-expression network, and keep the experiment type
-ppi <- unique(data.frame(gene_A     = agi2label[toupper(hits$INTERACTOR_A)],
-                         gene_B     = agi2label[toupper(hits$INTERACTOR_B)],
-                         experiment = hits$EXPERIMENTAL_SYSTEM, row.names = NULL))
-
-write.table(ppi, "PPI.txt", sep = "\t", quote = FALSE, row.names = FALSE)
-cat(nrow(ppi), "protein-protein interactions\n")
-print(ppi, row.names = FALSE)
+# PPI layer of the network: interactions among the 100 genes + all of your gene's partners
+label <- function(agi) unname(ifelse(toupper(agi) %in% names(agi2label),
+                                     agi2label[toupper(agi)], toupper(agi)))
+top_agi <- sub("_.*", "", top_genes)
+keep <- a != b & ((a %in% top_agi & b %in% top_agi) | a == my_gene | b == my_gene)
+ppi <- unique(data.frame(source = label(biogrid$INTERACTOR_A[keep]),
+                         target = label(biogrid$INTERACTOR_B[keep]),
+                         edge_type = "PPI", evidence = biogrid$EXPERIMENTAL_SYSTEM[keep]))
+cat(nrow(ppi), "protein-protein interactions in the PPI layer\n")
 ```
 
-*Your turn:* which proteins interact? Which kinds of experiment support the
-interactions?
+The column `co_expressed` says whether the partner is also among the 100 genes
+co-expressed with yours. *Your turn:* which proteins does yours bind? Which experiments
+show it? Are the partners also co-expressed — and what could it mean if they are not?
 
-::: {.callout-tip collapse="true" title="Answer"}
-There are 24 interactions, and nearly all are among **CESA4, CESA7 and CESA8** — with
-each other and with themselves. That is the **cellulose synthase complex**: the three
-secondary-wall CESAs assemble together, so the PPI layer confirms what co-expression
-suggested. The other notable partner is **TED6** (AT1G43790), a known CESA7-binding
-protein needed for xylem development. The evidence comes from yeast **two-hybrid**,
-**affinity capture** (Western), **co-purification** and **PCA** (here:
-protein-fragment complementation assay, not principal component analysis!).
-:::
+## 6.6 Which transcription factors regulate it and its neighbours? (Q6)
 
-## 6.3 Combine the two layers into one network
-
-Both files label genes the same way (`AGI_name`), so they can be stacked into **one
-edge table** with a column `edge_type` that says which layer each edge comes from.
+Our regulation data come from **AtRegNet** (AGRIS), a curated database of transcription
+factor → target relationships in Arabidopsis. We keep only relationships that were
+**experimentally confirmed** and come with a publication (1,501 in total).
 
 ```r
 setwd("~/work/module4")
 
-# Layer 1: co-expression (Session 5)
-coexp <- read.delim(paste0("for_cytoscape_", target_gene, ".tsv"))
-coexp <- data.frame(source = coexp$gene_A, target = coexp$gene_B,
-                    edge_type = "coexpression", evidence = as.character(round(coexp$PCC, 3)))
+# AtRegNet, cleaned for this course (download once)
+if (!file.exists("regulation_atregnet.tsv"))
+  download.file("https://mutwil.github.io/bioinformatik-module4-transcriptomics/data/regulation_atregnet_confirmed.tsv",
+                "regulation_atregnet.tsv")
+reg <- read.delim("regulation_atregnet.tsv", colClasses = "character")
 
-# Layer 2: protein-protein interactions (§6.2)
-ppi_edges <- read.delim("PPI.txt")
-ppi_edges <- data.frame(source = ppi_edges$gene_A, target = ppi_edges$gene_B,
-                        edge_type = "PPI", evidence = ppi_edges$experiment)
+# Q6: transcription factors that regulate your gene or one of its first neighbours
+my_set <- sub("_.*", "", c(my_label, neighbours))
+q6 <- reg[reg$target_AGI %in% my_set, c("TF", "TF_AGI", "target", "target_AGI", "effect", "pubmed")]
+q6 <- q6[order(q6$target_AGI != my_gene, q6$TF), ]   # regulators of your own gene first
+print(q6, row.names = FALSE)
+cat("Your gene is regulated by:", unique(q6$TF[q6$target_AGI == my_gene]), "\n")
 
-network <- rbind(coexp, ppi_edges)
-write.table(network, paste0("multiomics_network_", target_gene, ".tsv"),
-            sep = "\t", quote = FALSE, row.names = FALSE)
+# Is your gene itself a transcription factor? Then these are its targets:
+my_targets <- reg[reg$TF_AGI == my_gene, ]
+if (nrow(my_targets) > 0)
+  cat("Your gene regulates", nrow(my_targets), "genes:", head(my_targets$target, 25), "\n")
+
+# Regulation layer of the network
+regulation <- data.frame(source = label(q6$TF_AGI), target = label(q6$target_AGI),
+                         edge_type = "regulation", evidence = q6$effect)
+```
+
+`effect` says whether the TF **activates** or **represses** the target (`unknown` if
+the paper only showed binding); `pubmed` is the PubMed ID of the paper —
+`https://pubmed.ncbi.nlm.nih.gov/` followed by the number opens it.
+
+*Your turn:* which transcription factors regulate your gene? Do several neighbours
+share the same regulator — a sign that they form one co-regulated module?
+
+::: {.callout-note collapse="true" title="Few or no regulators for your gene?"}
+Experimentally confirmed regulation is known for only a small fraction of Arabidopsis
+genes, so an empty or short list is a real result: *nothing is known yet*. Look your
+gene up in [PlantConnectome](https://plant.connectome.tools/) (§6.8), which mines the
+literature much more broadly — for the photosynthesis genes, for example, it finds the
+classic light regulator **HY5**.
+:::
+
+## 6.7 One network, three layers — in Cytoscape
+
+Stack the three layers into one edge table and save it:
+
+```r
+network <- rbind(coexp, ppi, regulation)
+out_file <- paste0("network_", my_gene, ".tsv")
+write.table(network, out_file, sep = "\t", quote = FALSE, row.names = FALSE)
 table(network$edge_type)
 ```
 
-Download `multiomics_network_AT5G17420.tsv` to your computer as in §5.3.
-
-## 6.4 Style and analyse the multi-omic network
+Download the file to your computer as in §5.3.
 
 ::: {.cytoscape}
-1. **Import** the file as in §5.4 (*File → Import → Network from File…*). In the import
-   preview, click the `edge_type` column header and set it as the **Interaction Type**
-   (the icon with an arrow between two dots).
-2. **Nodes:**
-   - transcription factors — select MYB and NAC (`name:*myb*`, `name:*nac*`) and give
-     them their own shape;
-   - CESAs — another shape;
-   - run *Tools → Analyze Network* again, colour nodes by **Degree** and node borders by
-     **ClusteringCoefficient** (§5.7).
-3. **Edges:** *Style → Edge → Stroke Color* (and *Line Type*) → map the column
-   `edge_type` with a **Discrete Mapping**: one style for co-expression, another for
-   PPI. Where both kinds of edge connect the same two genes, you now have two
-   independent lines of evidence.
-4. **Arrange** the network so that the different node and edge categories are easy to
-   see.
-5. **Zoom in on your gene:** select it, then *Select → Nodes → First Neighbors of
-   Selected Nodes* — twice, to get the neighbours of the neighbours — and
-   *File → New Network → From Selected Nodes, All Edges*. Use a bypass to highlight
-   your gene.
+1. **Import** it (*File → Import → Network from File…*). In the import preview, click
+   the `edge_type` column header and set it as the **Interaction Type** (the icon with
+   an arrow between two dots).
+2. **Edges:** *Style → Edge → Stroke Color* → map `edge_type` with a **Discrete
+   Mapping** — one colour each for co-expression, PPI and regulation. Regulation has a
+   direction (TF → target): map *Target Arrow Shape* to `edge_type` and give
+   regulation an arrow. Map *Line Type* to `evidence` to tell activation and repression
+   apart.
+3. **Nodes:** run *Tools → Analyze Network*, colour nodes by **Degree**; give
+   transcription factors their own shape.
+4. **Zoom in on your gene:** select it, then *Select → Nodes → First Neighbors of
+   Selected Nodes*, and *File → New Network → From Selected Nodes, All Edges*. Use a
+   bypass to highlight your gene. This first-neighbourhood network is the figure for
+   your talk.
 :::
 
-*Your turn* — in the second-neighbourhood network of your gene, describe:
-
-- Which transcription factors (MYB, NAC …) are connected to your gene? They are
-  candidate regulators — co-expression alone does not prove they control it.
-- What are the functions of some of the unnamed (`_nan`) genes?
-- Does your protein interact with other proteins?
-- Do you find anything new and unexpected?
-
-## 6.5 Additional evidence from online network databases
-
-There are now many online databases that show expression profiles, co-expression and
-other networks for your gene. Use them to support (or challenge) your network.
+## 6.8 Cross-check online (optional)
 
 ::: {.web}
-1. **ePlant** ([bar.utoronto.ca/eplant](https://bar.utoronto.ca/eplant/)). Sort the
-   **Degree** column of the Node Table in Cytoscape and take the top 5 genes (e.g.
-   AT5G44030).
-   a. Look them up in the **Gene Info** viewer. Do their functions correspond to
-      secondary cell wall development?
-   b. Go to the **Plant eFP** viewer. Where are the five genes expressed? Are their
-      expression profiles similar?
-2. **STRING** ([string-db.org](https://string-db.org/)) — one of the oldest and still
-   most popular network databases. It combines co-expression, protein–protein
-   interactions, text mining and genomic information.
-   a. Search for **AT5G17420** (CESA7). Under **Viewers**, open the **Experiments**
-      panel. Are there associations reported between CESA7 and other genes? From which
-      kinds of experiments?
-   b. What kinds of information do the other **Viewers** panels show? Some panels are
-      not clickable — why?
-   c. Click the edge connecting CESA4 and CESA7. Which evidence underpins it?
-3. **PlantConnectome** ([plant.connectome.tools](https://plant.connectome.tools/)),
-   developed in Marek's lab: a large language model read more than 70,000 papers and
-   extracted relationships between genes, metabolites, cell types and other entities.
-   a. Search for **AT5G17420**. In the list of matching entities, tick the entries for
-      CESA7 (also called IRX3) and click **Show Selected**. Which relationships are
-      reported, and which kinds of entities is CESA7 connected to? Do they agree with
-      your network?
+- [**STRING**](https://string-db.org/) — search your gene. Which partners does STRING
+  report, and from which evidence (experiments, co-expression, text mining …)? Do they
+  agree with your BioGRID and co-expression results?
+- [**PlantConnectome**](https://plant.connectome.tools/) — search your AGI code: which
+  regulators, interactors, processes and phenotypes have been described for your gene in
+  the literature?
 :::
 
-::: {.callout-tip collapse="true" title="Answer"}
-1. The top-degree genes (CESA7, CESA8, CESA4, IRX12, IRX15 …) are all secondary-wall
-   genes, and in the eFP viewer they share the same profile: highest in the **stem**
-   (and other tissues with xylem), low in leaves and flowers.
-2. a. Yes — CESA7 has experimentally supported associations with CESA4 and CESA8
-      (co-immunoprecipitation and two-hybrid, as in BioGRID).
-   b. The panels show other evidence types: gene **neighbourhood**, gene **fusion**,
-      **co-occurrence** across genomes, **co-expression**, curated **databases** and
-      **text mining**. Panels for evidence types that do not apply to CESA7 (e.g. gene
-      fusion or neighbourhood, which are mostly informative for prokaryotes) have no
-      data and are greyed out.
-   c. Several independent evidence types at once — typically experiments (the CESA
-      complex studies), curated databases, co-expression and text mining. An edge
-      supported by many evidence types is far more trustworthy than one supported by
-      text mining alone.
-3. Look for the other CESAs, the transcription factors from your network (MYB46,
-   SND1/NAC012 …) and processes or phenotypes such as secondary cell wall formation,
-   cellulose biosynthesis and *irregular xylem*. Every edge links to the paper it was
-   extracted from: where PlantConnectome agrees with your network you have literature
-   support; where it differs, read the source sentence — the AI can be wrong too.
-:::
+## 6.9 The presentation {#sec-present}
 
-## 6.6 The expression profile of your gene
+Each group gives a **5-minute presentation**, followed by peer review in the afternoon.
+Use **one slide per question** — six slides plus a title:
 
-::: {.web}
-Go to [ePlant](https://bar.utoronto.ca/eplant/) and enter the AGI code of your gene.
+1. The function of your gene (UniProt, TAIR)
+2. Where it is expressed: organs, tissues, cell types (ePlant, Expression Atlas)
+3. Where the protein is in the cell (ePlant Cell eFP / UniProt)
+4. Its co-expression neighbours — with your Cytoscape figure
+5. Its interaction partners
+6. Its regulators — and what the network suggests about how the process is controlled
 
-1. In the **eFP viewer**: in which organs and tissues is your gene expressed?
-2. The same for **abiotic stress** — does any stress change its expression?
-3. And for **cell types in the root**.
-:::
-
-## 6.7 The presentation {#sec-present}
-
-Each group gives a **5-minute presentation** of its gene, followed by peer review in the
-afternoon. Cover:
-
-- the function of your gene (what is known — UniProt, TAIR, PlantConnectome);
-- the multi-omic network you generated, with your gene highlighted;
-- which transcription factors are connected to your gene (candidate regulators);
-- the functions of some of the unnamed (`_nan`) genes in its neighbourhood;
-- whether your protein interacts with other proteins;
-- anything new or unexpected;
-- the organ, tissue, cell-type and abiotic-stress expression profile of your gene.
+End with one sentence: **what is new or unexpected** in your network?
 
 ---
 
@@ -1911,8 +1973,8 @@ the folder looks like this:
     TAIR10_functional_descriptions.txt      gene descriptions (Sessions 3-6)
     for_cytoscape_AT5G17420.tsv             co-expression network (Session 5)
     BIOGRID-ORGANISM-5.0.250.tab.zip        BioGRID, and the Arabidopsis file from it (mini-project)
-    PPI.txt                                 protein-protein interactions (mini-project)
-    multiomics_network_AT5G17420.tsv        the combined network (mini-project)
+    regulation_atregnet.tsv                 curated TF -> target regulation (mini-project)
+    network_<your gene>.tsv                 your three-layer network (mini-project)
 ```
 
 **Moving files to your own computer** (for Cytoscape): RStudio **Files** pane → tick the
