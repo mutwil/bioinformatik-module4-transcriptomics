@@ -1708,22 +1708,25 @@ location** section of the UniProt entry for Q3.
 
 ## 6.4 Which genes is it co-expressed with? (Q4)
 
-This is Session 5's network — this time built around **your** gene. We go step by step:
-load the data, rank all genes by how well they correlate with yours, connect the top
-100 into a network, and list your gene's direct neighbours.
+This is Session 5's co-expression network — this time built around **your** gene. The
+block below first loads the expression atlas, the TAIR gene descriptions and the gene
+labels (the same setup as §5.1; run it again after any break, because R forgets
+everything when the ERDA session ends). It then ranks all 27,619 genes by their PCC with
+your gene, keeps the 100 most co-expressed, connects every pair of them with PCC above
+your cutoff, and lists your gene's **first neighbours** — the genes directly connected
+to it — with their descriptions.
 
-### Step 0 — Setup
-
-::: {.run-local}
-**Run this first** — also after any break: R forgets everything when the ERDA session
-ends. The files are already in your `module4` folder (from Sessions 3 and 5), so it is
-quick; if they are missing, the block downloads them.
-:::
+Change the first two lines to **your** gene and its cutoff from §6.1, then run the whole
+block:
 
 ```r
+my_gene <- "AT5G17420"   # <- your gene's AGI code (table in §6.1)
+cutoff  <- 0.90          # <- your gene's cutoff (same table)
+
 setwd("~/work/module4")
 options(timeout = 600)
 
+# ---- Setup: load the atlas, the TAIR descriptions and the gene labels (as in §5.1) ----
 atlas <- "https://ftp.ebi.ac.uk/pub/databases/microarray/data/atlas/experiments/E-MTAB-7978/"
 if (!file.exists("E-MTAB-7978-transcripts-tpms.tsv"))
   download.file(paste0(atlas, "E-MTAB-7978-transcripts-tpms.tsv"), "E-MTAB-7978-transcripts-tpms.tsv")
@@ -1752,86 +1755,40 @@ expr[is.na(expr)] <- 0
 rownames(expr) <- gene_label
 expr_log <- log2(expr + 1)
 
-
-dim(expr_log)
-```
-
-What this block does:
-
-- **`tair`** — the TAIR table of gene descriptions, one row per gene: the transcript
-  suffix (`.1`, `.2` …) is cut off the IDs with `sub()`, and duplicates are dropped.
-- **`tpm`** — the expression atlas (TPM values), keeping only the primary transcript
-  (`.1`) of every gene.
-- **`gene_label`** — a readable label for every gene: AGI code + `_` + gene name, e.g.
-  `AT5G17420_CESA7` (`_nan` if the gene has no name).
-- **`agi2label`** — a *lookup table* from AGI code to label: `agi2label[["AT5G17420"]]`
-  gives `"AT5G17420_CESA7"`. We use it to find your gene, and later to give BioGRID and
-  AtRegNet genes the same labels, so that the three layers connect in Cytoscape.
-- **`expr_log`** — the expression matrix: 27,619 genes (rows) × 56 samples (columns),
-  log₂(TPM + 1)-transformed. The last line prints its size: `27619 56`.
-
-### Step 1 — Choose your gene
-
-Replace the AGI code and the cutoff by those of **your** gene (table in §6.1):
-
-```r
-my_gene <- "AT5G17420"   # your gene's AGI code (from the table in §6.1)
-cutoff  <- 0.90          # your gene's cutoff (from the same table)
-
-setwd("~/work/module4")
+# ---- Your gene's co-expression network ----
 my_label <- agi2label[[my_gene]]
-my_label
-```
-
-`my_label` should print your gene's label, e.g. `"AT5G17420_CESA7"`. If you get
-`subscript out of bounds`, the AGI code is mistyped (capital letters, no spaces).
-
-### Step 2 — The 100 genes most co-expressed with yours
-
-```r
-# PCC of every gene with your gene
+# The 100 genes most co-expressed with your gene (your gene itself is number 1)
 pcc <- suppressWarnings(cor(t(expr_log), expr_log[my_label, ]))[, 1]
-
-# Sort from highest to lowest PCC and keep the names of the top 100
 top_genes <- names(sort(pcc, decreasing = TRUE))[1:100]
-head(top_genes)
-```
 
-- `expr_log[my_label, ]` is your gene's expression profile: 56 numbers, one per sample.
-- `cor()` correlates **columns**, so `t()` first turns the matrix around (genes become
-  columns). The result is one PCC per gene: how well each of the 27,619 genes follows
-  your gene's profile. Genes that never change give `NA` and a warning, which
-  `suppressWarnings()` hides.
-- `sort(..., decreasing = TRUE)` puts the best-correlated genes first, and `[1:100]`
-  keeps the top 100. Your gene itself is number 1 (PCC = 1 with itself).
-
-### Step 3 — Connect the 100 genes into a network
-
-```r
-# PCC between every pair of the 100 genes: a 100 x 100 matrix
+# Co-expression network: every pair of the 100 genes with PCC above your cutoff
 C <- cor(t(expr_log[top_genes, ]))
-
-# Every pair with PCC above your cutoff becomes an edge
 pairs <- which(C > cutoff & upper.tri(C), arr.ind = TRUE)
 coexp <- data.frame(source = rownames(C)[pairs[, 1]], target = colnames(C)[pairs[, 2]],
                     edge_type = "coexpression", evidence = as.character(round(C[pairs], 3)))
 cat(nrow(coexp), "co-expression edges among",
     length(unique(c(coexp$source, coexp$target))), "genes\n")
+
+# Q4: the first neighbours of your gene = the genes directly connected to it
+neighbours <- setdiff(colnames(C)[C[my_label, ] > cutoff], my_label)
+q4 <- data.frame(gene = neighbours, PCC = round(C[my_label, neighbours], 3),
+                 description = tair$Short_description[match(sub("_.*", "", neighbours), tair$gene)])
+q4 <- q4[order(q4$PCC, decreasing = TRUE), ]
+View(q4)
+print(transform(q4, description = substr(description, 1, 50)), row.names = FALSE, right = FALSE)
 ```
 
-- **`C`** holds the PCC of every pair of the 100 genes (row gene × column gene).
-- **`C > cutoff`** is TRUE for the pairs that are co-expressed strongly enough.
-  **`upper.tri(C)`** keeps only the triangle above the diagonal: the matrix is symmetric
-  (A–B is the same pair as B–A), and the diagonal is each gene with itself.
-- **`which(..., arr.ind = TRUE)`** returns the *row and column numbers* of those pairs;
-  we turn them into gene names.
-- **`coexp`** is the **edge table** of the co-expression layer: one row per edge, with
-  the two genes (`source`, `target`), the layer (`edge_type`) and the evidence (here the
-  PCC). The PPI and regulation layers get exactly the same four columns, so the three
-  tables can be stacked into one network in §6.7.
-- For CESA7 the message reads *195 co-expression edges among 57 genes*; other genes give
-  other numbers. Genes without any partner above the cutoff are simply not in the
-  network.
+You get two results:
+
+- the message *… co-expression edges among … genes* — for CESA7: 195 edges among 57
+  genes. These edges are the **co-expression layer** of your network (`coexp`): one row
+  per edge, with the two genes, the layer and the PCC;
+- the table `q4` of your gene's neighbours with their PCC and description, opened in
+  RStudio's viewer and printed in the console.
+
+*Your turn:* which genes are your gene's neighbours? Do their functions fit your gene's
+function from Q1? Are there unnamed (`_nan`) genes or genes of unknown function among
+them — what would you predict they do?
 
 ::: {.callout-tip collapse="true" title="Why does the cutoff differ between genes?"}
 Photosynthesis, ribosome and seed-storage genes are switched on and off together very
@@ -1842,106 +1799,50 @@ keep the gene in its own network. The right cutoff is the one that gives a netwo
 can read: a few dozen genes and a few hundred edges.
 :::
 
-### Step 4 — Your gene's neighbours (Q4)
-
-```r
-# The genes directly connected to your gene (its row of C), minus your gene itself
-neighbours <- setdiff(colnames(C)[C[my_label, ] > cutoff], my_label)
-
-# A table: neighbour, its PCC with your gene, and its TAIR description
-q4 <- data.frame(gene = neighbours, PCC = round(C[my_label, neighbours], 3),
-                 description = tair$Short_description[match(sub("_.*", "", neighbours), tair$gene)])
-q4 <- q4[order(q4$PCC, decreasing = TRUE), ]
-View(q4)
-print(transform(q4, description = substr(description, 1, 50)), row.names = FALSE, right = FALSE)
-```
-
-- **`C[my_label, ]`** is your gene's row of the matrix: its PCC with each of the 100
-  genes. The genes above the cutoff are your gene's **first neighbours** — the genes
-  connected to it by an edge. `setdiff()` removes your gene itself.
-- **`sub("_.*", "", neighbours)`** cuts the label back to the AGI code
-  (`AT4G18780_CESA8` → `AT4G18780`), and **`match()`** finds each code's row in the
-  TAIR table, to pick up its description.
-- The table is sorted by PCC and opened in RStudio's viewer (`View`); the console print
-  shortens the descriptions so that each gene stays on one line.
-
-*Your turn:* which genes are your gene's neighbours? Do their functions fit your
-gene's function from Q1? Are there unnamed (`_nan`) genes or genes of unknown function
-among them — what would you predict they do?
-
 ## 6.5 Which proteins does it interact with? (Q5)
 
-[BioGRID](https://thebiogrid.org/) collects protein–protein interactions that were
-shown by experiments. Its table has one row per experiment: protein A
-(`INTERACTOR_A`), protein B (`INTERACTOR_B`), their names (`OFFICIAL_SYMBOL_A/B`) and
-the method (`EXPERIMENTAL_SYSTEM`, e.g. *Two-hybrid*, *Affinity Capture-Western*).
+Co-expression says that genes are switched on together; it does not say that their
+proteins actually meet. That is what **protein–protein interaction (PPI)** data add.
+[BioGRID](https://thebiogrid.org/) collects interactions shown by experiments: each row
+of its table is one experiment showing that protein A binds protein B, with the method
+used (e.g. *Two-hybrid* or *Affinity Capture-Western*).
 
-### Step 1 — Load BioGRID
+The block downloads BioGRID the first time (69 MB) and reads the Arabidopsis table. It
+then picks out every row in which **your protein** is one of the two partners and lists
+the other protein, its name and the method — and marks whether that partner is also
+among your 100 co-expressed genes. Finally it builds the **PPI layer** of your network:
+the interactions among your 100 genes, plus all of your own protein's interactions,
+named exactly as in the co-expression layer so that the layers join up in Cytoscape.
 
 ```r
 setwd("~/work/module4")
 options(timeout = 600)
 
-# Download BioGRID (69 MB) the first time, and unpack only the Arabidopsis file
+# BioGRID, Arabidopsis file (downloaded only the first time)
 biogrid_zip <- "BIOGRID-ORGANISM-5.0.250.tab.zip"
 if (!file.exists(biogrid_zip))
   download.file("https://downloads.thebiogrid.org/Download/BioGRID/Release-Archive/BIOGRID-5.0.250/BIOGRID-ORGANISM-5.0.250.tab.zip",
                 biogrid_zip, mode = "wb")
 ppi_file <- "BIOGRID-ORGANISM-Arabidopsis_thaliana_Columbia-5.0.250.tab.txt"
 if (!file.exists(ppi_file)) unzip(biogrid_zip, files = ppi_file)
-
-# The file starts with licence text: find the header line and read the table from there
 skip <- grep("^INTERACTOR_A", readLines(ppi_file, n = 200))[1] - 1
 biogrid <- read.delim(ppi_file, skip = skip, quote = "", colClasses = "character")
-
-# The two interactors of every row, in capital letters (so that they match my_gene)
 a <- toupper(biogrid$INTERACTOR_A)
 b <- toupper(biogrid$INTERACTOR_B)
-nrow(biogrid)
-```
 
-The zip file holds one table per organism; `unzip(..., files = ...)` takes out only the
-Arabidopsis one. `grep()` finds the line that starts with `INTERACTOR_A` — the header —
-and `skip` tells `read.delim()` to start reading there. The last line prints the number
-of interactions in Arabidopsis (about 82,000).
-
-### Step 2 — Your protein's partners (Q5)
-
-```r
-# Rows where your protein is A or B (but not A = B: a protein binding itself)
+# Q5: every protein that your protein interacts with
 mine <- biogrid[(a == my_gene | b == my_gene) & a != b, ]
-
-# In each row, the partner is the *other* protein
 partner_is_B <- toupper(mine$INTERACTOR_A) == my_gene
 q5 <- unique(data.frame(
   partner    = ifelse(partner_is_B, mine$INTERACTOR_B, mine$INTERACTOR_A),
   symbol     = ifelse(partner_is_B, mine$OFFICIAL_SYMBOL_B, mine$OFFICIAL_SYMBOL_A),
   experiment = mine$EXPERIMENTAL_SYSTEM))
-
-# Is the partner also one of the 100 genes co-expressed with yours?
 q5$co_expressed <- toupper(q5$partner) %in% sub("_.*", "", top_genes)
 print(q5, row.names = FALSE)
-```
 
-- Your protein can be listed as A or as B, so we look in both columns (`|` means *or*).
-- **`ifelse()`** picks the partner: if your protein is A, the partner is B, and vice
-  versa.
-- **`unique()`** removes duplicate rows — the same partner and method reported by
-  several papers.
-- **`co_expressed`** is TRUE when the partner is also among your 100 co-expressed genes
-  (`%in%` asks "is this in that list?").
-
-*Your turn:* which proteins does yours bind, and which experiments show it? Are the
-partners also co-expressed — and what could it mean if they are not?
-
-### Step 3 — The PPI layer of your network
-
-```r
-# A function that turns an AGI code into the label used in the co-expression network
+# PPI layer of the network: interactions among the 100 genes + all of your gene's partners
 label <- function(agi) unname(ifelse(toupper(agi) %in% names(agi2label),
                                      agi2label[toupper(agi)], toupper(agi)))
-
-# Keep interactions among the 100 genes, plus all interactions of your own protein
 top_agi <- sub("_.*", "", top_genes)
 keep <- a != b & ((a %in% top_agi & b %in% top_agi) | a == my_gene | b == my_gene)
 ppi <- unique(data.frame(source = label(biogrid$INTERACTOR_A[keep]),
@@ -1950,70 +1851,52 @@ ppi <- unique(data.frame(source = label(biogrid$INTERACTOR_A[keep]),
 cat(nrow(ppi), "protein-protein interactions in the PPI layer\n")
 ```
 
-- **`label()`** is a small function we define ourselves: it looks an AGI code up in
-  `agi2label` (`AT4G18780` → `AT4G18780_CESA8`), so that a protein gets **the same node
-  name** as in the co-expression layer — otherwise Cytoscape would draw it twice.
-  Proteins that are not in the atlas keep their AGI code.
-- **`keep`** selects two kinds of interactions: between two of your 100 co-expressed
-  genes, and between your protein and any partner.
-- **`ppi`** is the edge table of the PPI layer, with the same four columns as `coexp`;
-  the evidence is the experimental method.
+*Your turn:* which proteins does yours bind, and which experiments show it? Are the
+partners also co-expressed (`co_expressed` column) — and what could it mean if they are
+not?
 
 ## 6.6 Which transcription factors regulate it and its neighbours? (Q6)
 
-Our regulation data come from **AtRegNet** (AGRIS), a curated database of transcription
-factor (TF) → target relationships in Arabidopsis. We keep only relationships that were
-**experimentally confirmed** and come with a publication: 1,501 in total. One row is one
-relationship: the TF (`TF`, `TF_AGI`), the gene it controls (`target`, `target_AGI`),
-the `effect` (*Activation*, *Repression* or *unknown* if the paper only showed binding)
-and the `pubmed` ID of the paper.
+Co-expression and PPIs are undirected — they do not say *who controls whom*. Gene
+regulation does: a **transcription factor (TF)** binds a gene's promoter and switches
+it on (activation) or off (repression). Our data come from **AtRegNet** (AGRIS), a
+curated database of TF → target relationships in Arabidopsis. We keep only
+relationships that were **experimentally confirmed** and come with a publication —
+1,501 in total.
 
-### Step 1 — Load the regulation table
+The block downloads this table (cleaned for the course) the first time. It then lists
+every TF that regulates **your gene or one of its first neighbours** from §6.4 — with
+the effect (*Activation*, *Repression*, or *unknown* if the paper only showed binding)
+and the PubMed ID of the paper (open `https://pubmed.ncbi.nlm.nih.gov/` followed by the
+number). If your gene is itself a TF (MYB46, SEP3), it also lists the genes your gene
+regulates. The TF → target edges become the **regulation layer** of your network; most
+TFs are not co-expressed with their targets, so they add new nodes.
 
 ```r
 setwd("~/work/module4")
 
-# AtRegNet, cleaned for this course (downloaded the first time)
+# AtRegNet, cleaned for this course (download once)
 if (!file.exists("regulation_atregnet.tsv"))
   download.file("https://mutwil.github.io/bioinformatik-module4-transcriptomics/data/regulation_atregnet_confirmed.tsv",
                 "regulation_atregnet.tsv")
 reg <- read.delim("regulation_atregnet.tsv", colClasses = "character")
-head(reg)
-```
 
-### Step 2 — The regulators of your gene and its neighbours (Q6)
-
-```r
-# AGI codes of your gene and of its first neighbours (from §6.4)
+# Q6: transcription factors that regulate your gene or one of its first neighbours
 my_set <- sub("_.*", "", c(my_label, neighbours))
-
-# All relationships whose target is one of these genes
 q6 <- reg[reg$target_AGI %in% my_set, c("TF", "TF_AGI", "target", "target_AGI", "effect", "pubmed")]
 q6 <- q6[order(q6$target_AGI != my_gene, q6$TF), ]   # regulators of your own gene first
 print(q6, row.names = FALSE)
 cat("Your gene is regulated by:", unique(q6$TF[q6$target_AGI == my_gene]), "\n")
-```
 
-- **`my_set`** is the list of AGI codes of your gene and its neighbours.
-- **`reg[reg$target_AGI %in% my_set, ...]`** keeps the rows whose target is in that
-  list — every known TF that controls your gene or one of its neighbours. The TFs
-  themselves can be any gene: most TFs are *not* co-expressed with their targets, so
-  they bring new nodes into your network.
-- **`order()`** puts the regulators of your own gene at the top, then sorts by TF name.
-  The last line lists just the regulators of your gene.
-- To read a paper, open `https://pubmed.ncbi.nlm.nih.gov/` followed by the `pubmed`
-  number.
-
-### Step 3 — Is your gene itself a transcription factor?
-
-```r
+# Is your gene itself a transcription factor? Then these are its targets:
 my_targets <- reg[reg$TF_AGI == my_gene, ]
 if (nrow(my_targets) > 0)
   cat("Your gene regulates", nrow(my_targets), "genes:", head(my_targets$target, 25), "\n")
-```
 
-This looks for your gene in the **TF** column instead. For MYB46 and SEP3 it lists the
-genes they control; for other genes it prints nothing.
+# Regulation layer of the network
+regulation <- data.frame(source = label(q6$TF_AGI), target = label(q6$target_AGI),
+                         edge_type = "regulation", evidence = q6$effect)
+```
 
 *Your turn:* which transcription factors regulate your gene? Do several neighbours
 share the same regulator — a sign that they form one co-regulated module?
@@ -2026,22 +1909,11 @@ literature much more broadly — for the photosynthesis genes, for example, it f
 classic light regulator **HY5**.
 :::
 
-
-### Step 4 — The regulation layer of your network
-
-```r
-regulation <- data.frame(source = label(q6$TF_AGI), target = label(q6$target_AGI),
-                         edge_type = "regulation", evidence = q6$effect)
-nrow(regulation)
-```
-
-The regulation edges get the same four columns as the other two layers. Unlike
-co-expression and PPI, they have a **direction**: `source` is the TF, `target` the gene
-it controls, and `evidence` says whether it activates or represses it.
-
 ## 6.7 One network, three layers — in Cytoscape
 
-Stack the three edge tables and save the result:
+The three layers — `coexp`, `ppi` and `regulation` — are tables with the same four
+columns (`source`, `target`, `edge_type`, `evidence`). The block stacks them into one
+edge table, saves it as `network_<your AGI>.tsv`, and counts the edges of each layer:
 
 ```r
 network <- rbind(coexp, ppi, regulation)
@@ -2050,10 +1922,7 @@ write.table(network, out_file, sep = "\t", quote = FALSE, row.names = FALSE)
 table(network$edge_type)
 ```
 
-**`rbind()`** puts the three tables under each other — possible because they all have the
-same four columns. `write.table()` saves the result as a tab-separated file named after
-your gene (e.g. `network_AT5G17420.tsv`), and `table()` counts the edges of each layer.
-Download the file to your computer as in §5.3.
+Download the file to your computer as in §5.3, then:
 
 ::: {.cytoscape}
 1. **Import** it (*File → Import → Network from File…*). In the import preview, click
