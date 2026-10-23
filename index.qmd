@@ -1879,38 +1879,61 @@ curated database of TF → target relationships in Arabidopsis. We keep only
 relationships that were **experimentally confirmed** and come with a publication —
 1,501 in total.
 
-The block downloads this table (cleaned for the course) the first time. It then lists
-every TF that regulates **your gene or one of its first neighbours** from §6.4 — with
-the effect (*Activation*, *Repression*, or *unknown* if the paper only showed binding)
-and the PubMed ID of the paper (open `https://pubmed.ncbi.nlm.nih.gov/` followed by the
-number). If your gene is itself a TF (MYB46, SEP3), it also lists the genes your gene
-regulates. The TF → target edges become the **regulation layer** of your network; most
-TFs are not co-expressed with their targets, so they add new nodes.
+The block downloads this table (cleaned for the course) the first time and finds every
+TF that regulates **your gene or one of its first neighbours** from §6.4. It prints a
+summary with one line per TF: whether it regulates your own gene, how many (and which)
+of your genes it regulates, the effect (*Activation*, *Repression*, or *unknown* when
+the paper only showed binding), and the kind of evidence:
+
+- **targeted study** — a paper that studied this TF and its targets specifically
+  (e.g. MYB46 → CESA7). Strong evidence.
+- **large screen** — one experiment that tested thousands of TF–promoter pairs at once
+  (a yeast one-hybrid screen of xylem regulators, or genome-wide ChIP of HY5 and PIF1).
+  Useful, but each single edge is less certain.
+
+The full summary opens in RStudio's viewer, sorted with the regulators of your own gene
+first and targeted studies before screens. If your gene is itself a TF (MYB46, SEP3), the
+block also lists the genes it regulates. All relationships become the **regulation
+layer** of your network — most TFs are not co-expressed with their targets, so they add
+new nodes.
 
 ```r
 setwd("~/work/module4")
 
-# AtRegNet, cleaned for this course (download once)
+# AtRegNet, cleaned for this course (downloaded the first time)
 if (!file.exists("regulation_atregnet.tsv"))
   download.file("https://mutwil.github.io/bioinformatik-module4-transcriptomics/data/regulation_atregnet_confirmed.tsv",
                 "regulation_atregnet.tsv")
 reg <- read.delim("regulation_atregnet.tsv", colClasses = "character")
 
-# Q6: transcription factors that regulate your gene or one of its first neighbours
+# All known TF -> target relationships for your gene and its first neighbours (§6.4)
 my_set <- sub("_.*", "", c(my_label, neighbours))
-q6 <- reg[reg$target_AGI %in% my_set, c("TF", "TF_AGI", "target", "target_AGI", "effect", "pubmed")]
-q6 <- q6[order(q6$target_AGI != my_gene, q6$TF), ]   # regulators of your own gene first
-print(q6, row.names = FALSE)
-cat("Your gene is regulated by:", unique(q6$TF[q6$target_AGI == my_gene]), "\n")
+q6 <- reg[reg$target_AGI %in% my_set, ]
 
-# Is your gene itself a transcription factor? Then these are its targets:
+# Q6, summarised: one line per transcription factor
+q6_summary <- do.call(rbind, lapply(split(q6, q6$TF), function(x) data.frame(
+  TF               = x$TF[1],
+  regulates_yours  = my_gene %in% x$target_AGI,                       # does it regulate YOUR gene?
+  n_genes          = length(unique(x$target_AGI)),                    # how many of your genes it regulates
+  genes            = paste(sort(unique(x$target)), collapse = ", "),
+  effect           = paste(sort(unique(x$effect)), collapse = "/"),
+  evidence         = paste(sort(unique(x$study)), collapse = "/"),
+  reference        = paste(unique(x$reference[x$reference != ""])[1]))))
+q6_summary <- q6_summary[order(!q6_summary$regulates_yours,
+                               q6_summary$evidence != "targeted study", -q6_summary$n_genes), ]
+View(q6_summary)
+print(transform(head(q6_summary, 15), genes = substr(genes, 1, 40)), row.names = FALSE, right = FALSE)
+
+# Is your gene itself a transcription factor? Then these are the genes it regulates:
 my_targets <- reg[reg$TF_AGI == my_gene, ]
 if (nrow(my_targets) > 0)
-  cat("Your gene regulates", nrow(my_targets), "genes:", head(my_targets$target, 25), "\n")
+  cat("\nYour gene regulates", nrow(my_targets), "genes:", sort(my_targets$target), "\n")
 
-# Regulation layer of the network
+# Regulation layer of the network (evidence = effect + type of study)
 regulation <- data.frame(source = label(q6$TF_AGI), target = label(q6$target_AGI),
-                         edge_type = "regulation", evidence = q6$effect)
+                         edge_type = "regulation",
+                         evidence = paste0(q6$effect, " (", q6$study, ")"))
+cat(nrow(regulation), "regulatory edges in the regulation layer\n")
 ```
 
 *Your turn:* which transcription factors regulate your gene? Do several neighbours
