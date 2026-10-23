@@ -1901,10 +1901,10 @@ new nodes.
 setwd("~/work/module4")
 
 # AtRegNet, cleaned for this course (downloaded the first time)
-if (!file.exists("regulation_atregnet.tsv"))
+if (!file.exists("regulation_atregnet_v2.tsv"))
   download.file("https://mutwil.github.io/bioinformatik-module4-transcriptomics/data/regulation_atregnet_confirmed.tsv",
-                "regulation_atregnet.tsv")
-reg <- read.delim("regulation_atregnet.tsv", colClasses = "character")
+                "regulation_atregnet_v2.tsv")
+reg <- read.delim("regulation_atregnet_v2.tsv", colClasses = "character")
 
 # All known TF -> target relationships for your gene and its first neighbours (§6.4)
 my_set <- sub("_.*", "", c(my_label, neighbours))
@@ -2065,7 +2065,7 @@ the folder looks like this:
     TAIR10_functional_descriptions.txt      gene descriptions (Sessions 3-6)
     for_cytoscape_AT5G17420.tsv             co-expression network (Session 5)
     BIOGRID-ORGANISM-5.0.250.tab.zip        BioGRID, and the Arabidopsis file from it (mini-project)
-    regulation_atregnet.tsv                 curated TF -> target regulation (mini-project)
+    regulation_atregnet_v2.tsv              curated TF -> target regulation (mini-project)
     network_<your gene>.tsv                 your three-layer network (mini-project)
 ```
 
