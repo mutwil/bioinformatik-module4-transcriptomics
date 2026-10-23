@@ -1493,9 +1493,18 @@ write.table(edges, out_file, sep = "\t", quote = FALSE, row.names = FALSE)
 cat("Saved", nrow(edges), "edges (PCC > 0.9) among", length(top_genes), "genes to", out_file, "\n")
 ```
 
-You should get **195 edges**. Copy the file to your own computer: in RStudio's
-**Files** pane, go to `~/work/module4`, tick `for_cytoscape_AT5G17420.tsv`, then click
-the gear icon (**More**) → **Export…** → **Download**.
+You should get **195 edges**.
+
+::: {.run-local}
+**Download the file to your computer** — in RStudio's **Files** pane (bottom right):
+
+1. Go to `~/work/module4` (**Home → work → module4**) and **tick the box** in front of
+   `for_cytoscape_AT5G17420.tsv` — tick only this file (several ticked files are downloaded together as a
+   zip).
+2. Click **More** — the blue gear icon on the Files toolbar, next to **Rename**.
+3. Choose **Export…**, then click **Download** in the dialog. The file lands in your
+   computer's **Downloads** folder.
+:::
 
 ## 5.4 Visualise the network in Cytoscape
 
@@ -1960,7 +1969,18 @@ write.table(network, out_file, sep = "\t", quote = FALSE, row.names = FALSE)
 table(network$edge_type)
 ```
 
-Download the file to your computer as in §5.3, then:
+::: {.run-local}
+**Download the file to your computer** — in RStudio's **Files** pane (bottom right):
+
+1. Go to `~/work/module4` (**Home → work → module4**) and **tick the box** in front of
+   `network_<your AGI>.tsv` — tick only this file (several ticked files are downloaded together as a
+   zip).
+2. Click **More** — the blue gear icon on the Files toolbar, next to **Rename**.
+3. Choose **Export…**, then click **Download** in the dialog. The file lands in your
+   computer's **Downloads** folder.
+:::
+
+Then, in Cytoscape:
 
 ::: {.cytoscape}
 1. **Import** it (*File → Import → Network from File…*). In the import preview, click
