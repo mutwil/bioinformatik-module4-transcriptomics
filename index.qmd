@@ -1711,9 +1711,48 @@ location** section of the UniProt entry for Q3.
 This is Session 5's network, built around your gene.
 
 ::: {.run-local}
-First run the **§5.1 setup block** (it loads the atlas, the gene labels and the TAIR
-descriptions). Then set **your** gene and cutoff in the first two lines below.
+**Setup — run this first** (also after any break: R forgets everything when the ERDA
+session ends). It loads the expression atlas, the gene labels and the TAIR descriptions
+— the same as §5.1. The files are already in your `module4` folder, so it is quick.
 :::
+
+```r
+setwd("~/work/module4")
+options(timeout = 600)
+
+atlas <- "https://ftp.ebi.ac.uk/pub/databases/microarray/data/atlas/experiments/E-MTAB-7978/"
+if (!file.exists("E-MTAB-7978-transcripts-tpms.tsv"))
+  download.file(paste0(atlas, "E-MTAB-7978-transcripts-tpms.tsv"), "E-MTAB-7978-transcripts-tpms.tsv")
+if (!file.exists("TAIR10_functional_descriptions.txt"))
+  download.file("https://www.arabidopsis.org/api/download-files/download?filePath=Genes/TAIR10_genome_release/TAIR10_functional_descriptions",
+                "TAIR10_functional_descriptions.txt")
+
+# TAIR descriptions, one per gene
+tair <- read.delim("TAIR10_functional_descriptions.txt", quote = "", colClasses = "character")
+tair$gene <- sub("\\.[0-9]+$", "", tair$Model_name)
+tair <- tair[!duplicated(tair$gene), c("gene", "Short_description")]
+
+# The TPM table, primary transcripts only
+tpm <- read.delim("E-MTAB-7978-transcripts-tpms.tsv", check.names = FALSE)
+tpm <- tpm[endsWith(tpm$GeneID, ".1"), ]
+
+# Gene labels AGI_name, and a lookup table AGI -> label (used again in the mini-project)
+gene_name <- tpm[["Gene Name"]]
+gene_name[is.na(gene_name) | gene_name == ""] <- "nan"
+gene_label <- paste(tpm[["Gene ID"]], gene_name, sep = "_")
+agi2label <- setNames(gene_label, toupper(tpm[["Gene ID"]]))
+
+# Expression matrix (56 samples), log2(TPM + 1), with the labels as row names
+expr <- as.matrix(tpm[, grep("^ERR", colnames(tpm))])
+expr[is.na(expr)] <- 0
+rownames(expr) <- gene_label
+expr_log <- log2(expr + 1)
+
+
+dim(expr_log)
+```
+
+Now set **your** gene and cutoff in the first two lines below, and run:
 
 ```r
 my_gene <- "AT5G17420"   # your gene's AGI code (from the table in §6.1)
