@@ -102,7 +102,7 @@ mornings plus Thursday afternoons — taught by **Marek Mutwil** ([mutwil@plen.k
 | | 09:30–12:00 | Mini-project, and finishing your presentation *(provisional)* | this workbook | [§6](#sec-project) |
 | | 12:00–13:00 | *Lunch* | | |
 | | **13:00–16:00** | **Peer review and Q&A** | | |
-| | 13:00–13:55 | **Peer review** of the mini-project presentations | | [§6.9](#sec-present) |
+| | 13:00–13:55 | **Peer review** of the mini-project presentations | | [§6.8](#sec-present) |
 | | 13:55–14:05 | *Break* | | |
 | | 14:05–16:00 | Q&A session (*spørgetime*) | | |
 :::
@@ -1654,8 +1654,8 @@ Your group answers **six questions** about its gene — and presents the answers
 
 ## 6.1 Pick your gene
 
-Each group claims **one** gene from the table — claim it in the Bioinformatik channel
-on Discord, so that no two groups take the same gene. The genes come from six different
+Each group claims **one** gene from the table — tell Marek which one, so that no two
+groups take the same gene. The genes come from six different
 processes, so every group tells a different story. The **cutoff** is the PCC above which
 two genes are connected in your co-expression network; it differs between genes because
 some processes are co-regulated much more tightly than others (§6.4).
@@ -1841,7 +1841,7 @@ share the same regulator — a sign that they form one co-regulated module?
 ::: {.callout-note collapse="true" title="Few or no regulators for your gene?"}
 Experimentally confirmed regulation is known for only a small fraction of Arabidopsis
 genes, so an empty or short list is a real result: *nothing is known yet*. Look your
-gene up in [PlantConnectome](https://plant.connectome.tools/) (§6.8), which mines the
+gene up in [PlantConnectome](https://plant.connectome.tools/), which mines the
 literature much more broadly — for the photosynthesis genes, for example, it finds the
 classic light regulator **HY5**.
 :::
@@ -1876,18 +1876,7 @@ Download the file to your computer as in §5.3.
    your talk.
 :::
 
-## 6.8 Cross-check online (optional)
-
-::: {.web}
-- [**STRING**](https://string-db.org/) — search your gene. Which partners does STRING
-  report, and from which evidence (experiments, co-expression, text mining …)? Do they
-  agree with your BioGRID and co-expression results?
-- [**PlantConnectome**](https://plant.connectome.tools/) — search your AGI code: which
-  regulators, interactors, processes and phenotypes have been described for your gene in
-  the literature?
-:::
-
-## 6.9 The presentation {#sec-present}
+## 6.8 The presentation {#sec-present}
 
 Each group gives a **5-minute presentation**, followed by peer review in the afternoon.
 Use **one slide per question** — six slides plus a title:
