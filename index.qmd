@@ -1855,6 +1855,21 @@ cat(nrow(ppi), "protein-protein interactions in the PPI layer\n")
 partners also co-expressed (`co_expressed` column) — and what could it mean if they are
 not?
 
+::: {.callout-note collapse="true" title="What do the methods in the experiment column mean?"}
+| Method | What the experiment does |
+|:--|:--|
+| **Two-hybrid** | The two proteins are fused to the two halves of a yeast transcription factor. Only if the proteins bind each other do the halves come together and switch on a reporter gene. |
+| **PCA** | *Protein-fragment Complementation Assay* — **not** principal component analysis! Each protein is fused to one half of a reporter protein (e.g. luciferase or a fluorescent protein such as YFP, then often called *BiFC*). The reporter only works when the two proteins bring its halves together — often tested directly in plant cells. |
+| **Affinity Capture-Western** | One protein is pulled out of a cell extract with an antibody or tag; a Western blot then shows that the partner came along with it. |
+| **Affinity Capture-MS** | The same pull-down, but all co-purified proteins are identified by mass spectrometry. |
+| **Co-purification** | The two proteins stay together through several purification steps, e.g. as one complex. |
+| **Reconstituted Complex** | Purified proteins are mixed in a test tube and bind each other. |
+| **Biochemical Activity** | One protein modifies the other (e.g. phosphorylates it) — an enzyme–substrate relationship rather than a stable complex. |
+
+An interaction shown by **several different methods** is much more trustworthy than one
+seen in a single screen.
+:::
+
 ## 6.6 Which transcription factors regulate it and its neighbours? (Q6)
 
 Co-expression and PPIs are undirected — they do not say *who controls whom*. Gene
