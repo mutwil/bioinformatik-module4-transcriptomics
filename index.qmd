@@ -192,6 +192,12 @@ the Terminal — to work through the module. Then you do what every RNA-seq proj
 starts with: download raw sequencing reads and turn them into **gene expression
 values** with *kallisto*.
 
+::: {.callout-note title="No access to ERDA?"}
+§1.11 shows the real output of every kallisto step in this session — the console
+messages, `run_info.json` and `abundance.tsv` — with an explanation of each part, and the
+result files to download.
+:::
+
 ::: {.run-local}
 Start an RStudio session on ERDA ([appendix](#sec-erda)) and make the module folder —
 paste this into the **Console** (once is enough; it does nothing if the folder exists):
@@ -603,6 +609,142 @@ reads) more precise.
 **Free up space when you are done.** The reads (about 180 MB) are not needed again.
 In the Terminal: `rm -r ~/work/module4/reads`
 :::
+
+## 1.11 What kallisto's output looks like — if you could not run it {#sec-kallisto-output}
+
+If ERDA was not available to you, this section shows the **real output** of the
+Session 1 commands (the same data, commands and kallisto version, 0.46.1), and explains
+every part of it. You can also download the result files and open them in Excel or R:
+
+- leaf (SRR3581681): [abundance.tsv](data/kallisto_results/SRR3581681_abundance.tsv) ·
+  [run_info.json](data/kallisto_results/SRR3581681_run_info.json)
+- internode (SRR3581705): [abundance.tsv](data/kallisto_results/SRR3581705_abundance.tsv) ·
+  [run_info.json](data/kallisto_results/SRR3581705_run_info.json)
+- the problem sample (SRR34314723): [abundance.tsv](data/kallisto_results/SRR34314723_abundance.tsv) ·
+  [run_info.json](data/kallisto_results/SRR34314723_run_info.json)
+
+### Step 1 — `kallisto index`: building the index
+
+```
+[build] loading fasta file TAIR10_cds.fa
+[build] k-mer length: 31
+[build] warning: replaced 8 non-ACGUT characters in the input sequence
+        with pseudorandom nucleotides
+[build] counting k-mers ... done.
+[build] building target de Bruijn graph ...  done
+[build] creating equivalence classes ...  done
+[build] target de Bruijn graph has 86480 contigs and contains 31977016 k-mers
+```
+
+- kallisto reads the 27,416 coding sequences and cuts them into **31-letter words
+  (*k*-mers)** — about 32 million different ones.
+- It stores them in a **de Bruijn graph**: a compact map of which *k*-mers follow each
+  other and **which transcripts contain each *k*-mer**. This is the lookup table used in
+  the next step.
+- The warning is harmless: 8 letters in the FASTA were not A, C, G or T (e.g. `N`) and
+  were replaced at random.
+
+### Step 2 — `kallisto quant`: what it prints
+
+Leaf sample (2 million reads):
+
+```
+[quant] fragment length distribution is truncated gaussian with mean = 200, sd = 20
+[index] k-mer length: 31
+[index] number of targets: 27,416
+[index] number of k-mers: 31,977,016
+[index] number of equivalence classes: 35,220
+[quant] running in single-end mode
+[quant] will process file 1: reads/SRR3581681.fastq.gz
+[quant] finding pseudoalignments for the reads ... done
+[quant] processed 2,000,000 reads, 1,362,175 reads pseudoaligned
+[   em] quantifying the abundances ... done
+[   em] the Expectation-Maximization algorithm ran for 525 rounds
+```
+
+| Line | Meaning |
+|:--|:--|
+| `fragment length … mean = 200, sd = 20` | the values we gave with `-l 200 -s 20`; for single-end reads kallisto cannot measure the fragment length itself |
+| `number of targets: 27,416` | the transcripts in the index — what reads can be assigned to |
+| `equivalence classes` | groups of transcripts that share the same *k*-mers; a read that fits several transcripts is assigned to such a group |
+| `processed 2,000,000 reads, 1,362,175 reads pseudoaligned` | **the key quality line**: 68 % of the reads matched the transcriptome |
+| `Expectation-Maximization … 525 rounds` | reads that fit several transcripts are shared out between them by an iterative algorithm (EM) until the estimates stop changing |
+
+The problem sample prints `processed 30 reads, 6 reads pseudoaligned` — only 30 reads,
+and only 20 % of them match.
+
+### Step 3 — the three output files
+
+Each sample gets its own folder (e.g. `results/SRR3581681/`) with:
+
+| File | What it contains |
+|:--|:--|
+| `abundance.tsv` | the results: one row per transcript (27,416 rows) — **this is the file you use** |
+| `abundance.h5` | the same results in a binary format (HDF5), for other programs such as *sleuth* |
+| `run_info.json` | a short report on the run: settings, number of reads, versions |
+
+### `run_info.json`
+
+| Field | Leaf (SRR3581681) | Problem sample (SRR34314723) | Meaning |
+|:--|:--|:--|:--|
+| `n_targets` | 27416 | 27416 | transcripts in the index |
+| `n_bootstraps` | 0 | 0 | bootstrap repeats (not used here) |
+| `n_processed` | 2000000 | **30** | reads read from the FASTQ file |
+| `n_pseudoaligned` | 1362175 | **6** | reads that matched at least one transcript |
+| `n_unique` | 1335593 | 6 | reads that matched exactly **one** transcript |
+| `p_pseudoaligned` | 68.1 | **20.0** | % of reads that matched |
+| `p_unique` | 66.8 | 20.0 | % that matched exactly one transcript |
+| `kallisto_version` / `index_version` | 0.46.1 / 10 | 0.46.1 / 10 | software versions (reproducibility) |
+| `start_time` / `call` | | | when the run started, and the exact command |
+
+How to read it: a good sample has **millions of reads** and typically **60–90 %
+pseudoaligned**. The problem sample has 30 reads, of which 20 % match: the sequencing
+failed or the file is truncated — and, as the SRA shows, it is a test run from rice and
+sorghum, so the wrong organism for an Arabidopsis index.
+
+### `abundance.tsv`
+
+The first rows of the leaf sample:
+
+| target_id | length | eff_length | est_counts | tpm |
+|:--|--:|--:|--:|--:|
+| AT1G50920.1 | 2016 | 1817 | 152 | 35.5993 |
+| AT1G36960.1 | 546 | 347 | 0 | 0 |
+| AT1G44020.1 | 1734 | 1535 | 0 | 0 |
+| AT1G15970.1 | 1059 | 860 | 12 | 5.93794 |
+| AT1G73440.1 | 765 | 566 | 17.0106 | 12.7896 |
+
+| Column | Meaning |
+|:--|:--|
+| `target_id` | the transcript (here: AGI code + `.1` = first gene model) |
+| `length` | length of the transcript in nucleotides |
+| `eff_length` | **effective length**: the number of positions where a 200-nt fragment can start, ≈ length − 200 + 1 (2016 → 1817) |
+| `est_counts` | **estimated number of reads** from this transcript. Can be a decimal number (17.0106) because a read that fits several transcripts is shared between them |
+| `tpm` | **transcripts per million**: the counts corrected for transcript length and sequencing depth. All TPM values of a sample add up to 1,000,000 |
+
+TPM is calculated in two steps — the same as in lecture M4F2:
+
+1. divide each transcript's `est_counts` by its `eff_length` (corrects for length:
+   long transcripts produce more fragments);
+2. divide by the sum of these values over all transcripts and multiply by 1,000,000
+   (corrects for sequencing depth).
+
+For example, PsaK in the leaf: 483 reads / 194 nt, scaled so that the sample sums to one
+million, gives **1059.49 TPM**.
+
+Three genes in the two organs:
+
+| Gene | Transcript | Leaf: est_counts | Leaf: TPM | Internode: est_counts | Internode: TPM |
+|:--|:--|--:|--:|--:|--:|
+| PsaK (photosynthesis) | AT1G30380.1 | 483 | 1059.5 | 459 | 1144.7 |
+| CESA4 (secondary wall) | AT5G44030.1 | 14 | 2.0 | 892 | 146.2 |
+| CESA7 (secondary wall) | AT5G17420.1 | 4 | 0.6 | 1045 | 175.4 |
+
+- PsaK has a **short** transcript (393 nt), so 483 reads already give a high TPM.
+- CESA4 and CESA7 are about **70–300× higher in the internode** — the stem, full of
+  secondary cell walls — than in the leaf, which is what you analyse in §1.10.
+- In the leaf, CESA4 has only 14 reads: lowly expressed genes get few reads, so their
+  TPM is less precise.
 
 ---
 

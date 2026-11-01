@@ -1,0 +1,13 @@
+{
+	"n_targets": 27416,
+	"n_bootstraps": 0,
+	"n_processed": 2000000,
+	"n_pseudoaligned": 1362175,
+	"n_unique": 1335593,
+	"p_pseudoaligned": 68.1,
+	"p_unique": 66.8,
+	"kallisto_version": "0.46.1",
+	"index_version": 10,
+	"start_time": "Sun Nov  1 11:15:22 2026",
+	"call": "./kallisto/kallisto quant -i TAIR10_index.idx -o results/SRR3581681 -t 4 --single -l 200 -s 20 reads/SRR3581681.fastq.gz"
+}
