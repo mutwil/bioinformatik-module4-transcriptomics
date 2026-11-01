@@ -195,7 +195,11 @@ values** with *kallisto*.
 ::: {.callout-note title="No access to ERDA?"}
 §1.11 shows the real output of every kallisto step in this session — the console
 messages, `run_info.json` and `abundance.tsv` — with an explanation of each part, and the
-result files to download.
+result files to download. The output of **all** exercises in this workbook (every table and
+figure R prints, Sessions 1–6) is collected in one PDF:
+[Module4_results.pdf](data/Module4_results.pdf). The files for Cytoscape are in
+[data/exercise_outputs](data/exercise_outputs/for_cytoscape_AT5G17420.tsv)
+(Session 5) and `data/exercise_outputs/network_<AGI>.tsv` (mini-project, one per gene).
 :::
 
 ::: {.run-local}
